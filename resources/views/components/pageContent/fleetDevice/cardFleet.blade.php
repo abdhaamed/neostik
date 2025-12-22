@@ -1,7 +1,8 @@
 <div class="grid grid-cols-2 gap-4">
 
     <!-- Card -->
-    <div class="bg-white rounded-lg border border-gray-300 p-4 hover:shadow-lg transition-all duration-200">
+    <div class="bg-white rounded-lg border border-gray-300 p-4 hover:shadow-lg transition-all duration-200 cursor-pointer fleet-card"
+        data-fleet-id="HD-99671212">
         <!-- Header -->
         <div class="flex items-center justify-between mb-3">
             <h4 class="text-gray-800">HD-99671212</h4>
