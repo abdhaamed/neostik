@@ -45,4 +45,22 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // Relasi ke Driver
+    public function driver()
+    {
+        return $this->hasOne(Driver::class);
+    }
+
+    // Relasi ke Tasks yang dibuat
+    public function createdTasks()
+    {
+        return $this->hasMany(Task::class, 'created_by');
+    }
+
+    // Relasi ke Fleet Status Logs
+    public function fleetStatusLogs()
+    {
+        return $this->hasMany(FleetStatusLog::class, 'uploaded_by');
+    }
 }
