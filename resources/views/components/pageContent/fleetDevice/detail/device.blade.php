@@ -15,15 +15,15 @@
         <div class="space-y-4">
             <div>
                 <label class="text-sm font-semibold text-gray-600">Device ID</label>
-                <p class="text-base text-gray-800 mt-1">GPS-HD-23818981289</p>
+                <p class="text-base text-gray-800 mt-1" data-label="deviceId">GPS-HD-23818981289</p>
             </div>
             <div>
                 <label class="text-sm font-semibold text-gray-600">IMEI Number</label>
-                <p class="text-base text-gray-800 mt-1">862170051234567</p>
+                <p class="text-base text-gray-800 mt-1" data-label="deviceImei">862170051234567</p>
             </div>
             <div>
                 <label class="text-sm font-semibold text-gray-600">SIM Card Number</label>
-                <p class="text-base text-gray-800 mt-1">+62 812-3456-7890</p>
+                <p class="text-base text-gray-800 mt-1" data-label="deviceSim">+62 812-3456-7890</p>
             </div>
         </div>
 
@@ -33,12 +33,12 @@
                 <label class="text-sm font-semibold text-gray-600">Connection Status</label>
                 <div class="flex items-center mt-1">
                     <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-                    <span class="text-base text-green-600 font-medium">Connected</span>
+                    <span class="text-base text-green-600 font-medium" data-label="deviceStatus">Connected</span>
                 </div>
             </div>
             <div>
                 <label class="text-sm font-semibold text-gray-600">Last Update</label>
-                <p class="text-base text-gray-800 mt-1">21 Dec 2025, 14:35 WIB</p>
+                <p class="text-base text-gray-800 mt-1" data-label="deviceUpdate">21 Dec 2025, 14:35 WIB</p>
             </div>
             <div>
                 <label class="text-sm font-semibold text-gray-600">Signal Strength</label>
@@ -50,7 +50,7 @@
                         <div class="w-1 h-6 bg-green-500 rounded"></div>
                         <div class="w-1 h-7 bg-gray-300 rounded"></div>
                     </div>
-                    <span class="text-sm text-gray-800 ml-2">Strong</span>
+                    <span class="text-sm text-gray-800 ml-2" data-label="deviceSignal">Strong</span>
                 </div>
             </div>
         </div>
@@ -65,20 +65,20 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <label class="text-sm font-semibold text-gray-600">Latitude</label>
-                <p class="text-base text-gray-800 mt-1">-6.402484</p>
+                <p class="text-base text-gray-800 mt-1" data-label="deviceLat">-6.402484</p>
             </div>
             <div>
                 <label class="text-sm font-semibold text-gray-600">Longitude</label>
-                <p class="text-base text-gray-800 mt-1">106.794243</p>
+                <p class="text-base text-gray-800 mt-1" data-label="deviceLng">106.794243</p>
             </div>
             <div>
                 <label class="text-sm font-semibold text-gray-600">Speed</label>
-                <p class="text-base text-gray-800 mt-1">45 km/h</p>
+                <p class="text-base text-gray-800 mt-1" data-label="deviceSpeed">45 km/h</p>
             </div>
         </div>
         <div>
             <label class="text-sm font-semibold text-gray-600">Address</label>
-            <p class="text-base text-gray-800 mt-1">Jl. Margonda Raya No. 100, Depok, Jawa Barat 16424</p>
+            <p class="text-base text-gray-800 mt-1" data-label="deviceAddress">Jl. Margonda Raya No. 100, Depok, Jawa Barat 16424</p>
         </div>
     </div>
 
