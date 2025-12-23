@@ -4,126 +4,304 @@ namespace App\Http\Controllers;
 
 use App\Models\Fleet;
 use App\Models\FleetCategory;
+use App\Models\Device;
+use App\Models\Driver;
+use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class FleetDeviceController extends Controller
 {
     /**
-     * Display fleet device management page
+     * Display the fleet & device management page
      */
     public function index(Request $request)
     {
-        // Get filter parameters
-        $status = $request->get('status');
-        $category = $request->get('category');
-        $search = $request->get('search');
+        // Get all fleet categories for filter
+        $fleetCategories = FleetCategory::all();
 
-        // Query fleets with relationships
-        $fleets = Fleet::with([
+        // Build fleet query with relationships
+        $fleetsQuery = Fleet::with([
             'category',
-            'device.gpsLogs' => function($query) {
-                $query->latest()->limit(1);
-            },
-            'device.activityLogs' => function($query) {
-                $query->latest()->limit(10);
-            },
-            'tasks' => function($query) {
-                $query->whereIn('status', ['pending', 'approved'])
-                      ->latest()
+            'device',
+            'tasks' => function ($query) {
+                $query->whereIn('status', ['approved', 'pending'])
                       ->with('driver.user');
-            },
-            'statusLogs' => function($query) {
-                $query->latest()->limit(10)->with('uploader');
             }
-        ])
-        ->when($status, function($query, $status) {
-            return $query->where('current_status', $status);
-        })
-        ->when($category, function($query, $category) {
-            return $query->where('category_id', $category);
-        })
-        ->when($search, function($query, $search) {
-            return $query->where(function($q) use ($search) {
-                $q->where('serial_number', 'like', "%{$search}%")
-                  ->orWhere('license_plate', 'like', "%{$search}%");
+        ]);
+
+        // Apply category filter if selected
+        if ($request->has('category') && $request->category != '') {
+            $fleetsQuery->where('category_id', $request->category);
+        }
+
+        // Apply status filter if selected
+        if ($request->has('status') && $request->status != '') {
+            $fleetsQuery->where('current_status', $request->status);
+        }
+
+        // Apply search filter
+        if ($request->has('search') && $request->search != '') {
+            $fleetsQuery->where(function ($q) use ($request) {
+                $q->where('license_plate', 'like', '%' . $request->search . '%')
+                  ->orWhere('serial_number', 'like', '%' . $request->search . '%');
             });
-        })
-        ->orderBy('created_at', 'desc')
-        ->get();
+        }
 
-        // Transform data untuk view
-        $fleets = $fleets->map(function($fleet) {
-            $currentTask = $fleet->tasks->first();
-            $latestGps = $fleet->device?->gpsLogs->first();
+        // Get fleets with pagination
+        $fleets = $fleetsQuery->orderBy('license_plate', 'asc')->get();
 
-            return [
-                'id' => $fleet->id,
-                'serial_number' => $fleet->serial_number,
-                'license_plate' => $fleet->license_plate,
-                'category' => $fleet->category->name,
-                'capacity' => $fleet->capacity,
-                'current_status' => $fleet->current_status,
-                'image' => $fleet->image,
-                'device' => $fleet->device ? [
-                    'id' => $fleet->device->id,
-                    'device_code' => $fleet->device->device_code,
-                    'imei_number' => $fleet->device->imei_number,
-                    'sim_card_number' => $fleet->device->sim_card_number,
-                    'connection_status' => $fleet->device->connection_status,
-                    'signal_strength' => $fleet->device->signal_strength,
-                    'last_update' => $fleet->device->last_update?->format('d M Y, H:i'),
-                    'gps' => $latestGps ? [
-                        'latitude' => $latestGps->latitude,
-                        'longitude' => $latestGps->longitude,
-                        'speed' => $latestGps->speed,
-                        'address' => $latestGps->address,
-                    ] : null,
-                    'activity_logs' => $fleet->device->activityLogs->map(function($log) {
-                        return [
-                            'timestamp' => $log->timestamp->format('d M Y, H:i'),
-                            'event' => $log->event,
-                            'location' => $log->location,
-                            'status' => $log->status,
-                        ];
-                    }),
-                ] : null,
-                'current_task' => $currentTask ? [
-                    'task_number' => $currentTask->task_number,
-                    'driver_name' => $currentTask->driver->user->name,
-                    'origin' => $currentTask->origin,
-                    'destination' => $currentTask->destination,
-                    'goods_type' => $currentTask->goods_type,
-                    'delivery_date' => $currentTask->delivery_date->format('d M Y'),
-                ] : null,
-                'status_logs' => $fleet->statusLogs->map(function($log) {
-                    return [
-                        'status' => $log->status,
-                        'recipient' => $log->recipient,
-                        'description' => $log->description,
-                        'report_image' => $log->report_image,
-                        'uploaded_by' => $log->uploader->name,
-                        'created_at' => $log->created_at->format('d M Y, H:i'),
-                    ];
-                }),
-            ];
-        });
+        // Get selected fleet if fleet_id is provided
+        $selectedFleet = null;
+        if ($request->has('fleet_id')) {
+            $selectedFleet = Fleet::with([
+                'category',
+                'device',
+                'tasks' => function ($query) {
+                    $query->whereIn('status', ['approved', 'pending'])
+                          ->with('driver.user');
+                }
+            ])->find($request->fleet_id);
+        }
 
-        // Get fleet categories for filter
-        $categories = FleetCategory::all();
-
-        // Get status summary for badges
-        $statusSummary = [
-            'total' => Fleet::count(),
-            'unassigned' => Fleet::where('current_status', 'unassigned')->count(),
-            'assigned' => Fleet::where('current_status', 'assigned')->count(),
-            'en_route' => Fleet::where('current_status', 'en_route')->count(),
-            'completed' => Fleet::where('current_status', 'completed')->count(),
-        ];
+        // Get statistics
+        $statistics = $this->getStatistics();
 
         return view('pages.manager.fleet-device', compact(
             'fleets',
-            'categories',
-            'statusSummary'
+            'fleetCategories',
+            'selectedFleet',
+            'statistics'
         ));
+    }
+
+    /**
+     * Get fleet detail via AJAX
+     */
+    public function getFleetDetail($id)
+    {
+        $fleet = Fleet::with([
+            'category',
+            'device.gpsLogs' => function ($query) {
+                $query->latest()->limit(10);
+            },
+            'device.activityLogs' => function ($query) {
+                $query->latest()->limit(10);
+            },
+            'tasks' => function ($query) {
+                $query->whereIn('status', ['approved', 'pending'])
+                      ->with('driver.user');
+            },
+            'statusLogs' => function ($query) {
+                $query->latest()->limit(10);
+            }
+        ])->findOrFail($id);
+
+        // Get active task
+        $activeTask = $fleet->tasks->first();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'fleet' => $fleet,
+                'device' => $fleet->device,
+                'active_task' => $activeTask,
+                'driver' => $activeTask?->driver?->user,
+                'latest_gps' => $fleet->device?->gpsLogs->first(),
+                'device_status' => $fleet->device?->connection_status ?? 'disconnected',
+                'status_logs' => $fleet->statusLogs
+            ]
+        ]);
+    }
+
+    /**
+     * Get device detail via AJAX
+     */
+    public function getDeviceDetail($fleetId)
+    {
+        $fleet = Fleet::with([
+            'device.gpsLogs' => function ($query) {
+                $query->latest()->limit(20);
+            },
+            'device.activityLogs' => function ($query) {
+                $query->latest()->limit(20);
+            }
+        ])->findOrFail($fleetId);
+
+        $device = $fleet->device;
+
+        if (!$device) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Device not found for this fleet'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'device' => $device,
+                'gps_logs' => $device->gpsLogs,
+                'activity_logs' => $device->activityLogs,
+                'latest_location' => $device->gpsLogs->first()
+            ]
+        ]);
+    }
+
+    /**
+     * Store new fleet
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'serial_number' => 'required|string|unique:fleets,serial_number',
+            'license_plate' => 'required|string|unique:fleets,license_plate',
+            'category_id' => 'required|exists:fleet_categories,id',
+            'capacity' => 'required|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+        ]);
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('fleets', 'public');
+        }
+
+        $fleet = Fleet::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Fleet created successfully',
+            'data' => $fleet
+        ]);
+    }
+
+    /**
+     * Update fleet
+     */
+    public function update(Request $request, $id)
+    {
+        $fleet = Fleet::findOrFail($id);
+
+        $validated = $request->validate([
+            'serial_number' => 'required|string|unique:fleets,serial_number,' . $id,
+            'license_plate' => 'required|string|unique:fleets,license_plate,' . $id,
+            'category_id' => 'required|exists:fleet_categories,id',
+            'capacity' => 'required|string',
+            'current_status' => 'nullable|in:unassigned,assigned,en_route,completed',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+        ]);
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($fleet->image) {
+                Storage::disk('public')->delete($fleet->image);
+            }
+            $validated['image'] = $request->file('image')->store('fleets', 'public');
+        }
+
+        $fleet->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Fleet updated successfully',
+            'data' => $fleet
+        ]);
+    }
+
+    /**
+     * Delete fleet
+     */
+    public function destroy($id)
+    {
+        $fleet = Fleet::findOrFail($id);
+
+        // Delete image if exists
+        if ($fleet->image) {
+            Storage::disk('public')->delete($fleet->image);
+        }
+
+        $fleet->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Fleet deleted successfully'
+        ]);
+    }
+
+    /**
+     * Assign device to fleet
+     */
+    public function assignDevice(Request $request, $fleetId)
+    {
+        $fleet = Fleet::findOrFail($fleetId);
+
+        $validated = $request->validate([
+            'device_code' => 'required|string|unique:devices,device_code',
+            'imei_number' => 'required|string|unique:devices,imei_number',
+            'sim_card_number' => 'nullable|string'
+        ]);
+
+        $validated['fleet_id'] = $fleetId;
+
+        $device = Device::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Device assigned successfully',
+            'data' => $device
+        ]);
+    }
+
+    /**
+     * Update device
+     */
+    public function updateDevice(Request $request, $deviceId)
+    {
+        $device = Device::findOrFail($deviceId);
+
+        $validated = $request->validate([
+            'device_code' => 'required|string|unique:devices,device_code,' . $deviceId,
+            'imei_number' => 'required|string|unique:devices,imei_number,' . $deviceId,
+            'sim_card_number' => 'nullable|string',
+            'connection_status' => 'nullable|in:connected,disconnected'
+        ]);
+
+        $device->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Device updated successfully',
+            'data' => $device
+        ]);
+    }
+
+    /**
+     * Remove device from fleet
+     */
+    public function removeDevice($deviceId)
+    {
+        $device = Device::findOrFail($deviceId);
+        $device->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Device removed successfully'
+        ]);
+    }
+
+    /**
+     * Get statistics for badges
+     */
+    private function getStatistics()
+    {
+        return [
+            'total_fleets' => Fleet::count(),
+            'active_fleets' => Fleet::whereIn('current_status', ['assigned', 'en_route'])->count(),
+            'available_fleets' => Fleet::where('current_status', 'unassigned')->count(),
+            'total_devices' => Device::count(),
+            'connected_devices' => Device::where('connection_status', 'connected')->count(),
+            'disconnected_devices' => Device::where('connection_status', 'disconnected')->count()
+        ];
     }
 }
