@@ -89,7 +89,7 @@
 
         <!-- Footer -->
         <div class="text-center mt-6 text-gray-600 text-sm">
-            <p>© 2024 Fleet Management System</p>
+            <p>© 2025 NEOSTIK - Fleet Management System</p>
         </div>
     </div>
 </body>
