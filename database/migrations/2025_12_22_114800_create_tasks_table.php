@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -10,13 +11,16 @@ return new class extends Migration
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
             $table->string('task_number')->unique();
-            $table->foreignId('driver_id')->constrained('drivers')->onDelete('cascade');
+            
+            // PENTING: nullable() agar bisa NULL (untuk available tasks)
+            $table->foreignId('driver_id')->nullable()->constrained('drivers')->onDelete('cascade');
+            
             $table->foreignId('fleet_id')->constrained('fleets')->onDelete('cascade');
             $table->date('delivery_date');
             $table->string('origin');
             $table->string('destination');
             $table->string('goods_type');
-            $table->enum('status', ['pending', 'approved', 'rejected', 'completed'])->default('pending');
+            $table->enum('status', ['pending', 'assigned', 'approved', 'rejected', 'completed'])->default('pending');
             $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });

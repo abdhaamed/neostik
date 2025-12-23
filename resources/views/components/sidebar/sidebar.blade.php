@@ -42,65 +42,6 @@ $currentRoute = Route::currentRouteName();
             </ul>
         </li>
 
-        <!-- Report Center -->
-        @php $reportOpen = in_array($currentRoute, ['report.route-history','report.operational-report']); @endphp
-        <li>
-            <button class="flex items-center justify-between w-full p-2 rounded hover:bg-orange-100 cursor-pointer" onclick="toggleMenu('report')">
-                <span class="flex items-center">
-                    <svg class="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 24 24"></svg>
-                    Report Center
-                </span>
-                <svg class="w-4 h-4 text-gray-600 transform transition-transform duration-300" id="icon-report" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <ul id="report" class="ml-10 mt-1 overflow-hidden transition-all duration-300 ease-in-out border-l-2 border-orange-300 text-sm {{ $reportOpen ? 'max-h-[500px]' : 'max-h-0' }}">
-                <a href="{{ route('report.route-history') }}">
-                    <li class="m-2 p-2 rounded hover:bg-orange-50 cursor-pointer {{ $currentRoute === 'report.route-history' ? 'bg-orange-50 font-semibold' : '' }}">Route History</li>
-                </a>
-                <a href="{{ route('report.operational-report') }}">
-                    <li class="m-2 p-2 rounded hover:bg-orange-50 cursor-pointer {{ $currentRoute === 'report.operational-report' ? 'bg-orange-50 font-semibold' : '' }}">Operational Report</li>
-                </a>
-            </ul>
-        </li>
-
-        <!-- Command -->
-        @php $commandOpen = in_array($currentRoute, ['command.message','command.broadcast']); @endphp
-        <li>
-            <button class="flex items-center justify-between w-full p-2 rounded hover:bg-orange-100 cursor-pointer" onclick="toggleMenu('command')">
-                <span class="flex items-center">
-                    <svg class="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 24 24"></svg>
-                    Command
-                </span>
-                <svg class="w-4 h-4 text-gray-600 transform transition-transform duration-300" id="icon-command" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <ul id="command" class="ml-10 mt-1 overflow-hidden transition-all duration-300 ease-in-out border-l-2 border-orange-300 text-sm {{ $commandOpen ? 'max-h-[500px]' : 'max-h-0' }}">
-                <a href="{{ route('command.message') }}">
-                    <li class="m-2 p-2 rounded hover:bg-orange-50 cursor-pointer {{ $currentRoute === 'command.message' ? 'bg-orange-50 font-semibold' : '' }}">Message</li>
-                </a>
-                <a href="{{ route('command.broadcast') }}">
-                    <li class="m-2 p-2 rounded hover:bg-orange-50 cursor-pointer {{ $currentRoute === 'command.broadcast' ? 'bg-orange-50 font-semibold' : '' }}">Broadcast</li>
-                </a>
-            </ul>
-        </li>
-
-        <!-- Audit Logs -->
-        <li class="flex items-center p-2 rounded hover:bg-orange-100 cursor-pointer {{ $currentRoute === 'audit-logs' ? 'bg-orange-50 font-semibold' : '' }}">
-            <a href="{{ route('audit-logs') }}" class="flex items-center w-full">
-                <svg class="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 24 24"></svg>
-                Audit Logs
-            </a>
-        </li>
-
-        <!-- Alert -->
-        <li class="flex items-center p-2 rounded hover:bg-orange-100 cursor-pointer {{ $currentRoute === 'alert' ? 'bg-orange-50 font-semibold' : '' }}">
-            <a href="{{ route('alert') }}" class="flex items-center w-full">
-                <svg class="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 24 24"></svg>
-                Alert
-            </a>
-        </li>
     </ul>
 </div>
 

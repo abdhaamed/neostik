@@ -20,7 +20,7 @@
             <!-- Left Section - Fleet List -->
             <div class="w-2/5 bg-white border-r border-gray-200 flex flex-col">
                 <!-- Filter & Add Button -->
-                @include('components.pageContent.fleetDevice.filterListFleet')
+                    @include('components.pageContent.fleetDevice.filterListFleet')
                 <!-- Fleet Cards -->
                 <div class="flex-1 overflow-y-auto p-4 space-y-3">
                     @include('components.pageContent.fleetDevice.cardFleet')

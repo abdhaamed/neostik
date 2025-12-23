@@ -1,86 +1,109 @@
+@php
+$fleet = $selectedFleet ?? null; // Pastikan yang dipakai adalah selectedFleet
+$activeTask = $fleet?->tasks->first() ?? null;
+$driver = $activeTask?->driver?->user ?? null;
+$statusLogs = $fleet?->statusLogs ?? collect();
+$currentStatus = $fleet->current_status ?? 'unassigned';
+@endphp
+
+<!-- Fleet Information -->
 <div class="bg-white rounded-lg shadow p-6 mb-6">
-    <div class="flex items-center justify-between mb-6">
-        <h3 class="text-lg font-semibold text-gray-800">Route</h3>
-        <button class="flex items-center space-x-2 text-blue-600 hover:text-blue-700">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            <span class="text-sm font-medium">Edit Route</span>
-        </button>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Left Side: Truck and Status -->
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Fleet Information</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-            <!-- Truck with Weight Badge -->
-            <div class="flex justify-center mb-6">
-                <div style="position: relative; display: inline-block;">
-                    <!-- Weight Badge Overlay -->
-                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">
-                        <div class="text-white px-8 py-2 rounded shadow-lg">
-                            <span class="text-base font-bold">200 kg</span>
-                        </div>
-                    </div>
-                    <!-- Truck Image Placeholder -->
-                    <img src="" alt="Truck" class="w-64 h-32 bg-gray-300 rounded object-cover">
-                </div>
-            </div>
-
-            <!-- Route Status Timeline -->
-            <div class="space-y-4">
-                <div class="flex items-start space-x-3">
-                    <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0 mt-1">
-                        <div class="w-3 h-3 rounded-full bg-white"></div>
-                    </div>
-                    <div>
-                        <p class="font-bold text-gray-800">Unassigned</p>
-                        <p class="text-sm text-gray-600">Belum ada penugasan</p>
-                    </div>
-                </div>
-
-                <div class="flex items-start space-x-3">
-                    <div class="w-6 h-6 rounded-full flex bg-gray-300 items-center justify-center flex-shrink-0 mt-1">
-                        <div class="w-3 h-3 rounded-full bg-white"></div>
-                    </div>
-                    <div>
-                        <p class="font-bold text-gray-800">Assigned</p>
-                        <p class="text-sm text-gray-600">Tugas telah diberikan ke kurir/driver</p>
-                    </div>
-                </div>
-
-                <div class="flex items-start space-x-3">
-                    <div class="w-6 h-6 rounded-full flex bg-gray-300 items-center justify-center flex-shrink-0 mt-1">
-                        <div class="w-3 h-3 rounded-full bg-white"></div>
-                    </div>
-                    <div>
-                        <p class="font-bold text-gray-800">En Route</p>
-                        <p class="text-sm text-gray-600">Dalam Perjalanan</p>
-                    </div>
-                </div>
-
-                <div class="flex items-start space-x-3">
-                    <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0 mt-1">
-                        <div class="w-3 h-3 rounded-full bg-white"></div>
-                    </div>
-                    <div>
-                        <p class="font-bold text-gray-800">Completed</p>
-                        <p class="text-sm text-gray-600">Pengiriman selesai</p>
-                    </div>
-                </div>
-            </div>
+            <p class="font-semibold text-gray-600">License Plate</p>
+            <p class="text-gray-800">{{ $fleet?->license_plate ?? '-' }}</p>
         </div>
-
-        <!-- Right Side: Map -->
-        <div class="bg-gray-300 rounded-lg overflow-hidden">
-            <!-- Map placeholder - insert your map here -->
+        <div>
+            <p class="font-semibold text-gray-600">Serial Number</p>
+            <p class="text-gray-800">{{ $fleet?->serial_number ?? '-' }}</p>
+        </div>
+        <div>
+            <p class="font-semibold text-gray-600">Category</p>
+            <p class="text-gray-800">{{ $fleet?->category?->name ?? '-' }}</p>
+        </div>
+        <div>
+            <p class="font-semibold text-gray-600">Capacity</p>
+            <p class="text-gray-800">{{ $fleet?->capacity ?? '-' }}</p>
+        </div>
+        <div>
+            <p class="font-semibold text-gray-600">Current Status</p>
+            <p class="text-gray-800">{{ ucfirst($currentStatus) }}</p>
+        </div>
+        <div>
+            <p class="font-semibold text-gray-600">Fleet Image</p>
+            @if($fleet?->image)
+                <img src="{{ asset('storage/' . $fleet->image) }}" class="mt-2 w-48 h-24 object-cover rounded">
+            @else
+                <p class="text-gray-400">No image</p>
+            @endif
         </div>
     </div>
 </div>
 
-<!-- Bukti Operasional Section -->
+<!-- Device Information -->
+@if($fleet?->device)
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Device Information</h3>
+    <p><span class="font-semibold">Device Code:</span> {{ $fleet->device->device_code ?? '-' }}</p>
+    <p><span class="font-semibold">IMEI Number:</span> {{ $fleet->device->imei_number ?? '-' }}</p>
+    <p><span class="font-semibold">SIM Card Number:</span> {{ $fleet->device->sim_card_number ?? '-' }}</p>
+    <p><span class="font-semibold">Connection Status:</span> {{ ucfirst($fleet->device->connection_status ?? 'disconnected') }}</p>
+</div>
+@endif
+
+<!-- Active Task -->
+@if($activeTask)
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h3 class="text-xl font-bold text-gray-800 mb-4">Active Task</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <p class="font-semibold text-gray-600">Task Number</p>
+            <p class="text-gray-800">{{ $activeTask->task_number }}</p>
+        </div>
+        <div>
+            <p class="font-semibold text-gray-600">Delivery Date</p>
+            <p class="text-gray-800">{{ $activeTask->delivery_date?->format('d M Y') ?? '-' }}</p>
+        </div>
+        <div>
+            <p class="font-semibold text-gray-600">Status</p>
+            <p class="text-gray-800">{{ ucfirst($activeTask->status ?? '-') }}</p>
+        </div>
+        <div>
+            <p class="font-semibold text-gray-600">Origin</p>
+            <p class="text-gray-800">{{ $activeTask->origin ?? '-' }}</p>
+        </div>
+        <div>
+            <p class="font-semibold text-gray-600">Destination</p>
+            <p class="text-gray-800">{{ $activeTask->destination ?? '-' }}</p>
+        </div>
+    </div>
+
+    @if($driver)
+    <div class="mt-4 flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden bg-gray-300">
+            @if($driver->profile_photo_path)
+                <img src="{{ asset('storage/' . $driver->profile_photo_path) }}" alt="{{ $driver->name }}" class="w-full h-full object-cover">
+            @else
+                <span class="text-lg font-bold text-gray-600">{{ substr($driver->name, 0, 1) }}</span>
+            @endif
+        </div>
+        <div>
+            <p class="font-medium text-gray-800">{{ $driver->name }}</p>
+            <p class="text-xs text-gray-600">{{ $driver->email }}</p>
+        </div>
+    </div>
+    @endif
+</div>
+@else
+<div class="bg-white rounded-lg shadow p-6 mb-6 text-center text-gray-400">
+    <p>No Active Task</p>
+</div>
+@endif
+
+<!-- Status Logs / Bukti Operasional -->
 <div class="bg-white rounded-lg shadow p-6">
     <h3 class="text-xl font-bold text-gray-800 mb-4">Bukti Operasional</h3>
-
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
@@ -92,46 +115,33 @@
                 </tr>
             </thead>
             <tbody>
-                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td class="py-3 px-4 text-gray-800">Unassigned</td>
-                    <td class="py-3 px-4 text-gray-800">PIC Gudang</td>
-                    <td class="py-3 px-4 text-gray-600">Staff gudang menyiapkan dokumen</td>
+                @forelse($statusLogs as $log)
+                @php
+                    $statusClasses = [
+                        'unassigned' => 'bg-gray-100 text-gray-700',
+                        'assigned' => 'bg-orange-100 text-orange-700',
+                        'en_route' => 'bg-blue-100 text-blue-700',
+                        'completed' => 'bg-green-100 text-green-700'
+                    ];
+                    $rowClass = $statusClasses[$log->status] ?? 'bg-gray-100 text-gray-700';
+                @endphp
+                <tr class="border-b border-gray-100 hover:bg-gray-50 {{ $rowClass }}">
+                    <td class="py-3 px-4">{{ ucfirst(str_replace('_', ' ', $log->status)) }}</td>
+                    <td class="py-3 px-4">{{ $log->recipient ?? '—' }}</td>
+                    <td class="py-3 px-4">{{ $log->description ?? 'No description' }}</td>
                     <td class="py-3 px-4">
-                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded text-xs font-medium transition-colors">
-                            Show
-                        </button>
+                        @if($log->report_image)
+                        <a href="{{ asset('storage/' . $log->report_image) }}" target="_blank" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded text-xs font-medium">Show</a>
+                        @else
+                        <span class="text-xs text-gray-400">No report</span>
+                        @endif
                     </td>
                 </tr>
-                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td class="py-3 px-4 text-gray-800">Assigned</td>
-                    <td class="py-3 px-4 text-gray-800">Lead Logistic</td>
-                    <td class="py-3 px-4 text-gray-600">Tugas pengiriman diberikan ke driver</td>
-                    <td class="py-3 px-4">
-                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded text-xs font-medium transition-colors">
-                            Show
-                        </button>
-                    </td>
+                @empty
+                <tr>
+                    <td colspan="4" class="py-8 text-center text-gray-400">No operational evidence recorded</td>
                 </tr>
-                <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td class="py-3 px-4 text-gray-800">En Route</td>
-                    <td class="py-3 px-4 text-gray-800">Davin Pratama</td>
-                    <td class="py-3 px-4 text-gray-600">Menuju lokasi tujuan</td>
-                    <td class="py-3 px-4">
-                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded text-xs font-medium transition-colors">
-                            Show
-                        </button>
-                    </td>
-                </tr>
-                <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="py-3 px-4 text-gray-800">Completed</td>
-                    <td class="py-3 px-4 text-gray-800">PT Sejahtera Selalu</td>
-                    <td class="py-3 px-4 text-gray-600">Barang diterima oleh penerima</td>
-                    <td class="py-3 px-4">
-                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded text-xs font-medium transition-colors">
-                            Show
-                        </button>
-                    </td>
-                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
