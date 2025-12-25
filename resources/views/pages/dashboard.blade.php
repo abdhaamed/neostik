@@ -66,57 +66,27 @@
 
                     <!-- Vehicle List -->
                     <div class="divide-y divide-gray-200">
+
                         <!-- Vehicle Item 1 -->
-                        <div onclick="showFleetDetail('B 7832 POM', 'Carrying Chemical', 'Olivia Rodrigo')" class="p-4 hover:bg-gray-50 cursor-pointer">
+                        <div onclick="handleVehicleClick('B 7832 POM', 'Carrying Chemical', 'Olivia Rodrigo', -6.2088, 106.8456)" class="p-4 hover:bg-gray-50 cursor-pointer transition-colors">
                             <div class="flex items-start space-x-3">
-                                <!-- Truck Icon Placeholder -->
-                                <div class="w-12 h-12 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                <!-- Truck Icon -->
+                                <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-500 rounded flex items-center justify-center flex-shrink-0">
+                                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M18 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-9H17V12h4.46L19.5 9.5zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM20 8l3 4v5h-2c0 1.66-1.34 3-3 3s-3-1.34-3-3H9c0 1.66-1.34 3-3 3s-3-1.34-3-3H1V6c0-1.11.89-2 2-2h14v4h3zM3 6v9h.76c.55-.61 1.35-1 2.24-1s1.69.39 2.24 1H15V6H3z" />
                                     </svg>
                                 </div>
-                                <div class="flex-1">
-                                    <div class="flex items-center justify-between">
-                                        <h4 class="font-bold text-gray-800">B 7832 POM</h4>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <h4 class="font-bold text-gray-800 truncate">B 7832 POM</h4>
+                                        <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full flex-shrink-0">Active</span>
                                     </div>
-                                    <p class="text-xs text-gray-500">Carrying Chemical</p>
+                                    <p class="text-xs text-gray-500 truncate">Carrying Chemical</p>
+                                    <p class="text-xs text-gray-400 mt-1">Driver: Olivia Rodrigo</p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Vehicle Item 2 -->
-                        <div onclick="showFleetDetail('B 8131 NSA', 'Carrying Chemical', 'John Doe')" class="p-4 hover:bg-gray-50 cursor-pointer">
-                            <div class="flex items-start space-x-3">
-                                <div class="w-12 h-12 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M18 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-9H17V12h4.46L19.5 9.5zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM20 8l3 4v5h-2c0 1.66-1.34 3-3 3s-3-1.34-3-3H9c0 1.66-1.34 3-3 3s-3-1.34-3-3H1V6c0-1.11.89-2 2-2h14v4h3zM3 6v9h.76c.55-.61 1.35-1 2.24-1s1.69.39 2.24 1H15V6H3z" />
-                                    </svg>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="flex items-center justify-between">
-                                        <h4 class="font-bold text-gray-800">B 8131 NSA</h4>
-                                    </div>
-                                    <p class="text-xs text-gray-500">Carrying Chemical</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Vehicle Item 3 -->
-                        <div onclick="showFleetDetail('F 9832 JNK', 'Carrying Chemical', 'Jane Smith')" class="p-4 hover:bg-gray-50 cursor-pointer">
-                            <div class="flex items-start space-x-3">
-                                <div class="w-12 h-12 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M18 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-9H17V12h4.46L19.5 9.5zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM20 8l3 4v5h-2c0 1.66-1.34 3-3 3s-3-1.34-3-3H9c0 1.66-1.34 3-3 3s-3-1.34-3-3H1V6c0-1.11.89-2 2-2h14v4h3zM3 6v9h.76c.55-.61 1.35-1 2.24-1s1.69.39 2.24 1H15V6H3z" />
-                                    </svg>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="flex items-center justify-between">
-                                        <h4 class="font-bold text-gray-800">F 9832 JNK</h4>
-                                    </div>
-                                    <p class="text-xs text-gray-500">Carrying Chemical</p>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </aside>
 
@@ -284,8 +254,8 @@
     </div>
 
     <script>
-        // Fleet detail functions
-        function showFleetDetail(plateNumber, cargo, driverName) {
+        // Fleet detail functions - Updated to work with tabs
+        function showFleetDetail(plateNumber, cargo, driverName, latitude = null, longitude = null) {
             const detailPanel = document.getElementById('fleetDetail');
             const detailOverlay = document.getElementById('detailOverlay');
 
@@ -300,6 +270,12 @@
 
             // Prevent body scroll when panel is open
             document.body.style.overflow = 'hidden';
+
+            // TODO: Navigate to coordinates on map
+            if (latitude && longitude) {
+                console.log(`Showing vehicle at: ${latitude}, ${longitude}`);
+                // navigateToCoordinates(latitude, longitude);
+            }
         }
 
         function closeFleetDetail() {
@@ -312,6 +288,15 @@
 
             // Restore body scroll
             document.body.style.overflow = 'auto';
+        }
+
+        // UPDATED: Vehicle item click handler with tab creation
+        function handleVehicleClick(plateNumber, cargo, driverName, latitude = null, longitude = null) {
+            // Create or switch to tab
+            createVehicleTab(plateNumber, cargo, driverName, latitude, longitude);
+
+            // Show fleet detail
+            showFleetDetail(plateNumber, cargo, driverName, latitude, longitude);
         }
 
         // Tab switching function

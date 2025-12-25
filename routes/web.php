@@ -2,14 +2,15 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
 | AUTHENTICATION ROUTES
 |--------------------------------------------------------------------------
 */
-
-// Halaman pilihan login (Login Choice) - route wajib bernama 'login' agar middleware auth bekerja
+// Halaman pilihan login (Login Choice)
 Route::get('/login', [LoginController::class, 'choice'])->name('login');
 
 // Admin login
@@ -23,114 +24,112 @@ Route::post('/login/driver', [LoginController::class, 'driverLogin'])->name('log
 // Logout
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-
 /*
 |--------------------------------------------------------------------------
 | ROOT
 |--------------------------------------------------------------------------
 */
-
 Route::get('/', function () {
-    return redirect()->route('dashboard');
+    if (Auth::check()) {
+        if (Auth::user()->role === 'admin') {
+            return redirect()->route('dashboard');
+        }
+        return redirect()->route('driver.dashboard');
+    }
+    return redirect()->route('login');
 });
 
-
 /*
 |--------------------------------------------------------------------------
-| DASHBOARDS
+| ADMIN ROUTES
 |--------------------------------------------------------------------------
 */
-
-// Admin dashboard
-Route::get('/dashboard', function () {
-    return view('pages.dashboard');
-})->middleware('auth')->name('dashboard');
-
-// Driver dashboard
-Route::get('/driver/dashboard', function () {
-    return view('driver.dashboard');
-})->middleware('auth')->name('driver.dashboard');
-
-
-/*
-|--------------------------------------------------------------------------
-| MANAGER CENTER
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('manager')->middleware('auth')->group(function () {
-
-    Route::get('/fleet-device', function () {
-        return view('pages.manager.fleet-device');
-    })->name('manager.fleet-device');
-
-    Route::get('/user-management', function () {
-        return view('pages.manager.user-management');
-    })->name('manager.user-management');
-
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| REPORT CENTER
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('report')->middleware('auth')->group(function () {
-
-    Route::get('/route-history', function () {
-        return view('pages.report.route-history');
-    })->name('report.route-history');
-
-    Route::get('/operational-report', function () {
-        return view('pages.report.operational-report');
-    })->name('report.operational-report');
-
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| COMMAND CENTER
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('command')->middleware('auth')->group(function () {
-
-    Route::get('/message', function () {
-        return view('pages.command.message');
-    })->name('command.message');
-
-    Route::get('/broadcast', function () {
-        return view('pages.command.broadcast');
-    })->name('command.broadcast');
-
-});
-
-
-/*
-|--------------------------------------------------------------------------
-| OTHERS
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/audit-logs', function () {
-    return view('pages.audit-logs');
-})->middleware('auth')->name('audit-logs');
-
-Route::get('/alert', function () {
-    return view('pages.alert');
-})->middleware('auth')->name('alert');
-
-
-// DRIVER dashboard & shipments
-Route::prefix('driver')->middleware('auth')->group(function () {
+Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(function () {
+    // Admin dashboard
     Route::get('/dashboard', function () {
-        return view('driver.dashboard');
-    })->name('driver.dashboard');
+        return view('pages.dashboard');
+    })->name('dashboard');
 
-    Route::get('/shipments', function () {
-        return view('driver.shipments');
-    })->name('driver.shipments');
+    // Admin Profile
+    Route::get('/profile', [App\Http\Controllers\AdminProfileController::class, 'show'])->name('admin.profile');
+    Route::put('/profile/update', [App\Http\Controllers\AdminProfileController::class, 'update'])->name('admin.profile.update');
+    Route::put('/profile/password', [App\Http\Controllers\AdminProfileController::class, 'updatePassword'])->name('admin.profile.password');
+
+    /*
+    |--------------------------------------------------------------------------
+    | MANAGER CENTER
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('manager')->group(function () {
+        Route::get('/fleet-device', function () {
+            return view('pages.manager.fleet-device');
+        })->name('manager.fleet-device');
+
+        // User Management Routes
+        Route::get('/user-management', [UserController::class, 'index'])->name('manager.user-management');
+        Route::get('/users/search', [UserController::class, 'search'])->name('users.search');
+        Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | REPORT CENTER
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('report')->group(function () {
+        Route::get('/route-history', function () {
+            return view('pages.report.route-history');
+        })->name('report.route-history');
+
+        Route::get('/operational-report', function () {
+            return view('pages.report.operational-report');
+        })->name('report.operational-report');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | COMMAND CENTER
+    |--------------------------------------------------------------------------
+    */
+    Route::prefix('command')->group(function () {
+        Route::get('/message', function () {
+            return view('pages.command.message');
+        })->name('command.message');
+
+        Route::get('/broadcast', function () {
+            return view('pages.command.broadcast');
+        })->name('command.broadcast');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | OTHERS
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/audit-logs', function () {
+        return view('pages.audit-logs');
+    })->name('audit-logs');
+
+    Route::get('/alert', function () {
+        return view('pages.alert');
+    })->name('alert');
+});
+
+/*
+|--------------------------------------------------------------------------
+| DRIVER ROUTES
+|--------------------------------------------------------------------------
+*/
+Route::prefix('driver')->middleware('auth')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\DriverController::class, 'dashboard'])->name('driver.dashboard');
+    Route::get('/shipments', [App\Http\Controllers\DriverController::class, 'shipments'])->name('driver.shipments');
+    Route::get('/profile', [App\Http\Controllers\DriverController::class, 'profile'])->name('driver.profile');
+    
+    // Profile Updates
+    Route::put('/profile/update', [App\Http\Controllers\DriverController::class, 'updateProfile'])->name('driver.profile.update');
+    Route::put('/profile/password', [App\Http\Controllers\DriverController::class, 'updatePassword'])->name('driver.profile.password');
+    Route::put('/profile/vehicle', [App\Http\Controllers\DriverController::class, 'updateVehicle'])->name('driver.profile.vehicle');
 });

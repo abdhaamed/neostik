@@ -34,8 +34,3 @@
         </button>
     </div>
 </div>
-
-<!-- Table -->
-<div class="overflow-x-auto">
-    @include('components.pageContent.userManagement.tableUser')
-</div>

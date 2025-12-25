@@ -27,7 +27,6 @@
                 </div>
             </div>
             <!-- Right Section - Details -->
-            <!-- Right Section - Details -->
             <div class="flex-1 bg-gray-50 overflow-y-auto" id="detailPanel">
 
                 <!-- DEFAULT / PLACEHOLDER -->
