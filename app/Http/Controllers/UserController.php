@@ -18,7 +18,7 @@ class UserController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('pages.manager.user-management', compact('drivers'));
+        return view('admin-dashboard.manager.user-management', compact('drivers'));
     }
 
     /**

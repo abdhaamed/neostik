@@ -94,13 +94,6 @@ $currentRoute = Route::currentRouteName();
             </a>
         </li>
 
-        <!-- Alert -->
-        <li class="flex items-center p-2 rounded hover:bg-orange-100 cursor-pointer {{ $currentRoute === 'alert' ? 'bg-orange-50 font-semibold' : '' }}">
-            <a href="{{ route('alert') }}" class="flex items-center w-full">
-                <svg class="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 24 24"></svg>
-                Alert
-            </a>
-        </li>
     </ul>
 </div>
 

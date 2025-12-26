@@ -32,7 +32,7 @@
             <!-- Content with Map and Right Sidebar -->
             <div class="flex flex-1 overflow-hidden">
                 <!-- Map Area -->
-                @include('components.pageContent.dashboard.map')
+                @include('components.content-dashboard.dashboard.map')
 
                 <!-- Right Sidebar -->
                 <aside class="w-64 bg-white border-l border-gray-200 overflow-y-auto">

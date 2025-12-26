@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\FleetDeviceController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -47,7 +48,7 @@ Route::get('/', function () {
 Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(function () {
     // Admin dashboard
     Route::get('/dashboard', function () {
-        return view('pages.dashboard');
+        return view('admin-dashboard.dashboard');
     })->name('dashboard');
 
     // Admin Profile
@@ -61,18 +62,33 @@ Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(f
     |--------------------------------------------------------------------------
     */
     Route::prefix('manager')->group(function () {
-        Route::get('/fleet-device', function () {
-            return view('pages.manager.fleet-device');
-        })->name('manager.fleet-device');
+
+        Route::get('/fleet-device', [FleetDeviceController::class, 'index'])
+            ->name('manager.fleet-device');
+
+        Route::post('/fleet-device', [FleetDeviceController::class, 'store'])
+            ->name('manager.fleet-device.store');
 
         // User Management Routes
-        Route::get('/user-management', [UserController::class, 'index'])->name('manager.user-management');
-        Route::get('/users/search', [UserController::class, 'search'])->name('users.search');
-        Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
-        Route::post('/users', [UserController::class, 'store'])->name('users.store');
-        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+        Route::get('/user-management', [UserController::class, 'index'])
+            ->name('manager.user-management');
+
+        Route::get('/users/search', [UserController::class, 'search'])
+            ->name('users.search');
+
+        Route::get('/users/{user}', [UserController::class, 'show'])
+            ->name('users.show');
+
+        Route::post('/users', [UserController::class, 'store'])
+            ->name('users.store');
+
+        Route::put('/users/{user}', [UserController::class, 'update'])
+            ->name('users.update');
+
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])
+            ->name('users.destroy');
     });
+
 
     /*
     |--------------------------------------------------------------------------
@@ -81,11 +97,11 @@ Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(f
     */
     Route::prefix('report')->group(function () {
         Route::get('/route-history', function () {
-            return view('pages.report.route-history');
+            return view('admin-dashboard.report.route-history');
         })->name('report.route-history');
 
         Route::get('/operational-report', function () {
-            return view('pages.report.operational-report');
+            return view('admin-dashboard.report.operational-report');
         })->name('report.operational-report');
     });
 
@@ -96,11 +112,11 @@ Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(f
     */
     Route::prefix('command')->group(function () {
         Route::get('/message', function () {
-            return view('pages.command.message');
+            return view('admin-dashboard.command.message');
         })->name('command.message');
 
         Route::get('/broadcast', function () {
-            return view('pages.command.broadcast');
+            return view('admin-dashboard.command.broadcast');
         })->name('command.broadcast');
     });
 
@@ -110,11 +126,11 @@ Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(f
     |--------------------------------------------------------------------------
     */
     Route::get('/audit-logs', function () {
-        return view('pages.audit-logs');
+        return view('admin-dashboard.audit-logs');
     })->name('audit-logs');
 
     Route::get('/alert', function () {
-        return view('pages.alert');
+        return view('admin-dashboard.alert');
     })->name('alert');
 });
 
@@ -127,7 +143,7 @@ Route::prefix('driver')->middleware('auth')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\DriverController::class, 'dashboard'])->name('driver.dashboard');
     Route::get('/shipments', [App\Http\Controllers\DriverController::class, 'shipments'])->name('driver.shipments');
     Route::get('/profile', [App\Http\Controllers\DriverController::class, 'profile'])->name('driver.profile');
-    
+
     // Profile Updates
     Route::put('/profile/update', [App\Http\Controllers\DriverController::class, 'updateProfile'])->name('driver.profile.update');
     Route::put('/profile/password', [App\Http\Controllers\DriverController::class, 'updatePassword'])->name('driver.profile.password');
