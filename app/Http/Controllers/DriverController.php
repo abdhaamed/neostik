@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User; // ⬅️ PENTING
+use App\Models\User;
+use App\Models\Task; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -26,12 +27,15 @@ class DriverController extends Controller
 
     public function shipments()
     {
-        /** @var User $driver */
         $driver = Auth::user();
 
-        $shipments = [];
+        // Gunakan Task tanpa namespace penuh
+        $tasks = Task::with('fleet.device')
+            ->where('driver_id', $driver->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        return view('driver.shipments', compact('driver', 'shipments'));
+        return view('driver.shipments', compact('tasks'));
     }
 
     public function profile()

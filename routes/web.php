@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\FleetDeviceController;
+use App\Http\Controllers\TaskController; // ⬅️ Tambahkan ini
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -70,10 +71,18 @@ Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(f
             ->name('manager.fleet-device.store');
 
         /*
-    |--------------------------------------------------------------------------
-    | DEVICE HISTORY (TAMBAHAN)
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | TASK ASSIGNMENT (BARU)
+        |--------------------------------------------------------------------------
+        */
+        Route::post('/tasks', [TaskController::class, 'store'])
+            ->name('manager.tasks.store');
+
+        /*
+        |--------------------------------------------------------------------------
+        | DEVICE HISTORY (TAMBAHAN)
+        |--------------------------------------------------------------------------
+        */
 
         // Tambah history device
         Route::post('/device/{id}/history', [FleetDeviceController::class, 'addDeviceHistory'])
@@ -84,10 +93,10 @@ Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(f
             ->name('manager.device.histories');
 
         /*
-    |--------------------------------------------------------------------------
-    | USER MANAGEMENT
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | USER MANAGEMENT
+        |--------------------------------------------------------------------------
+        */
 
         Route::get('/user-management', [UserController::class, 'index'])
             ->name('manager.user-management');

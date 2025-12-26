@@ -167,15 +167,18 @@
                         </div>
 
                         <!-- Driver Cards -->
+                        <!-- Driver Cards -->
                         <div class="flex-1 overflow-y-auto p-4">
                             <div class="grid grid-cols-2 gap-4">
-                                <!-- Card 1 - Selected State -->
-                                <div class="bg-white rounded-lg border-2 border-orange-400 p-4 hover:shadow-lg transition-all duration-200 cursor-pointer driver-card" data-driver-id="1">
+                                @forelse($drivers as $driver)
+                                <div class="bg-white rounded-lg border border-gray-300 p-4 hover:shadow-lg transition-all duration-200 cursor-pointer driver-card" data-driver-id="{{ $driver->id }}">
                                     <!-- Header -->
                                     <div class="flex items-center justify-between mb-3">
                                         <div class="flex items-center gap-2">
-                                            <img src="https://ui-avatars.com/api/?name=Olivia+Rodrigo&background=6366f1&color=fff" alt="Driver" class="w-8 h-8 rounded-full">
-                                            <h4 class="text-gray-800 font-semibold text-sm">Olivia Rodrigo</h4>
+                                            <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm font-bold">
+                                                {{ substr($driver->name, 0, 1) }}
+                                            </div>
+                                            <h4 class="text-gray-800 font-semibold text-sm">{{ $driver->name }}</h4>
                                         </div>
                                         <button class="text-gray-400 hover:text-gray-600">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,20 +187,20 @@
                                         </button>
                                     </div>
                                     <!-- Driver ID -->
-                                    <p class="text-xs text-gray-500 mb-3">DRV-0829374850</p>
+                                    <p class="text-xs text-gray-500 mb-3">{{ $driver->driver_id }}</p>
                                     <!-- Stats Grid -->
                                     <div class="grid grid-cols-3 gap-2 mb-3">
                                         <div class="text-center">
                                             <div class="text-xs text-gray-500">Delivery</div>
-                                            <div class="text-lg font-bold text-gray-800">12</div>
+                                            <div class="text-lg font-bold text-gray-800">{{ $driver->completed_deliveries }}</div>
                                         </div>
                                         <div class="text-center">
                                             <div class="text-xs text-gray-500">Task</div>
-                                            <div class="text-lg font-bold text-gray-800">12</div>
+                                            <div class="text-lg font-bold text-gray-800">0</div> <!-- Bisa dihitung dari tasks -->
                                         </div>
                                         <div class="text-center">
                                             <div class="text-xs text-gray-500">Rating</div>
-                                            <div class="text-lg font-bold text-gray-800">4/5</div>
+                                            <div class="text-lg font-bold text-gray-800">{{ number_format($driver->rating, 1) }}/5</div>
                                         </div>
                                     </div>
                                     <!-- Productivity -->
@@ -206,120 +209,11 @@
                                         <span class="font-semibold text-gray-700">0%</span>
                                     </div>
                                 </div>
-
-                                <!-- Card 2 -->
-                                <div class="bg-white rounded-lg border border-gray-300 p-4 hover:shadow-lg transition-all duration-200 cursor-pointer driver-card" data-driver-id="2">
-                                    <!-- Header -->
-                                    <div class="flex items-center justify-between mb-3">
-                                        <div class="flex items-center gap-2">
-                                            <img src="https://ui-avatars.com/api/?name=John+Doe&background=10b981&color=fff" alt="Driver" class="w-8 h-8 rounded-full">
-                                            <h4 class="text-gray-800 font-semibold text-sm">John Doe</h4>
-                                        </div>
-                                        <button class="text-gray-400 hover:text-gray-600">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                    <!-- Driver ID -->
-                                    <p class="text-xs text-gray-500 mb-3">DRV-9076327856</p>
-                                    <!-- Stats Grid -->
-                                    <div class="grid grid-cols-3 gap-2 mb-3">
-                                        <div class="text-center">
-                                            <div class="text-xs text-gray-500">Delivery</div>
-                                            <div class="text-lg font-bold text-gray-800">12</div>
-                                        </div>
-                                        <div class="text-center">
-                                            <div class="text-xs text-gray-500">Task</div>
-                                            <div class="text-lg font-bold text-gray-800">12</div>
-                                        </div>
-                                        <div class="text-center">
-                                            <div class="text-xs text-gray-500">Rating</div>
-                                            <div class="text-lg font-bold text-gray-800">4/5</div>
-                                        </div>
-                                    </div>
-                                    <!-- Productivity -->
-                                    <div class="flex items-center justify-between text-xs">
-                                        <span class="text-gray-500">Productivity</span>
-                                        <span class="font-semibold text-gray-700">0%</span>
-                                    </div>
+                                @empty
+                                <div class="col-span-2 text-center py-8 text-gray-500">
+                                    No drivers available
                                 </div>
-
-                                <!-- Card 3 -->
-                                <div class="bg-white rounded-lg border border-gray-300 p-4 hover:shadow-lg transition-all duration-200 cursor-pointer driver-card" data-driver-id="3">
-                                    <!-- Header -->
-                                    <div class="flex items-center justify-between mb-3">
-                                        <div class="flex items-center gap-2">
-                                            <img src="https://ui-avatars.com/api/?name=Jane+Smith&background=f59e0b&color=fff" alt="Driver" class="w-8 h-8 rounded-full">
-                                            <h4 class="text-gray-800 font-semibold text-sm">Jane Smith</h4>
-                                        </div>
-                                        <button class="text-gray-400 hover:text-gray-600">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                    <!-- Driver ID -->
-                                    <p class="text-xs text-gray-500 mb-3">DRV-0912347890</p>
-                                    <!-- Stats Grid -->
-                                    <div class="grid grid-cols-3 gap-2 mb-3">
-                                        <div class="text-center">
-                                            <div class="text-xs text-gray-500">Delivery</div>
-                                            <div class="text-lg font-bold text-gray-800">12</div>
-                                        </div>
-                                        <div class="text-center">
-                                            <div class="text-xs text-gray-500">Task</div>
-                                            <div class="text-lg font-bold text-gray-800">12</div>
-                                        </div>
-                                        <div class="text-center">
-                                            <div class="text-xs text-gray-500">Rating</div>
-                                            <div class="text-lg font-bold text-gray-800">4/5</div>
-                                        </div>
-                                    </div>
-                                    <!-- Productivity -->
-                                    <div class="flex items-center justify-between text-xs">
-                                        <span class="text-gray-500">Productivity</span>
-                                        <span class="font-semibold text-gray-700">0%</span>
-                                    </div>
-                                </div>
-
-                                <!-- Card 4 -->
-                                <div class="bg-white rounded-lg border border-gray-300 p-4 hover:shadow-lg transition-all duration-200 cursor-pointer driver-card" data-driver-id="4">
-                                    <!-- Header -->
-                                    <div class="flex items-center justify-between mb-3">
-                                        <div class="flex items-center gap-2">
-                                            <img src="https://ui-avatars.com/api/?name=Michael+Brown&background=ef4444&color=fff" alt="Driver" class="w-8 h-8 rounded-full">
-                                            <h4 class="text-gray-800 font-semibold text-sm">Michael Brown</h4>
-                                        </div>
-                                        <button class="text-gray-400 hover:text-gray-600">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                    <!-- Driver ID -->
-                                    <p class="text-xs text-gray-500 mb-3">DRV-0123892178</p>
-                                    <!-- Stats Grid -->
-                                    <div class="grid grid-cols-3 gap-2 mb-3">
-                                        <div class="text-center">
-                                            <div class="text-xs text-gray-500">Delivery</div>
-                                            <div class="text-lg font-bold text-gray-800">12</div>
-                                        </div>
-                                        <div class="text-center">
-                                            <div class="text-xs text-gray-500">Task</div>
-                                            <div class="text-lg font-bold text-gray-800">12</div>
-                                        </div>
-                                        <div class="text-center">
-                                            <div class="text-xs text-gray-500">Rating</div>
-                                            <div class="text-lg font-bold text-gray-800">4/5</div>
-                                        </div>
-                                    </div>
-                                    <!-- Productivity -->
-                                    <div class="flex items-center justify-between text-xs">
-                                        <span class="text-gray-500">Productivity</span>
-                                        <span class="font-semibold text-gray-700">0%</span>
-                                    </div>
-                                </div>
+                                @endforelse
                             </div>
                         </div>
                     </div>
@@ -327,67 +221,81 @@
                     <!-- Right Section - Task Assignment Form -->
                     <div class="flex-1 bg-gray-50 overflow-y-auto" id="taskFormPanel">
                         <!-- PLACEHOLDER MESSAGE -->
-                        <div id="placeholderTaskMessage" class="hidden h-full flex flex-col justify-center items-center text-gray-400">
+                        <div id="placeholderTaskMessage" class="h-full flex flex-col justify-center items-center text-gray-400">
                             <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
                             <p class="text-gray-500">Select a driver to assign task</p>
                         </div>
 
-                        <!-- TASK FORM (DEFAULT VISIBLE) -->
-                        <div id="taskFormDetail" class="p-6">
+                        <!-- TASK FORM (DEFAULT HIDDEN) -->
+                        <form id="taskFormDetail" class="p-6 hidden" enctype="multipart/form-data">
+                            <!-- Hidden driver_id -->
+                            <input type="hidden" id="selectedDriverId" name="driver_id">
+
                             <div class="grid grid-cols-2 gap-6">
                                 <!-- Left Column - Task Information -->
                                 <div class="space-y-6">
                                     <div>
                                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Task Information</h3>
-                                        <p class="text-sm text-gray-600 mb-4">Add Task For Employee</p>
+                                        <p class="text-sm text-gray-600 mb-4">Assign task to selected driver</p>
 
                                         <!-- Nomor Tugas -->
                                         <div class="mb-4">
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Tugas</label>
-                                            <input type="text" placeholder="Nomor Tugas" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <input type="text" name="task_number" placeholder="TASK-250405-ABC123" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         </div>
 
                                         <!-- Tanggal Pengiriman -->
                                         <div class="mb-4">
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal Pengiriman</label>
-                                            <div class="relative">
-                                                <input type="text" placeholder="Placeholder" class="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                                <svg class="w-5 h-5 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                                </svg>
-                                            </div>
+                                            <input type="date" name="delivery_date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        </div>
+
+                                        <!-- Pilih Fleet -->
+                                        <div class="mb-4">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Assign to Fleet *</label>
+                                            <select name="fleet_id" id="fleetSelect" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                <option value="">-- Pilih Fleet --</option>
+                                                @foreach($fleets as $fleet)
+                                                <option value="{{ $fleet->id }}">
+                                                    {{ $fleet->fleet_id }}
+                                                    @if($fleet->device)
+                                                    - {{ $fleet->device->device_id }}
+                                                    @endif
+                                                </option>
+                                                @endforeach
+                                            </select>
                                         </div>
 
                                         <!-- Asal Pengiriman -->
                                         <div class="mb-4">
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Asal Pengiriman</label>
-                                            <textarea placeholder="Enter a description..." rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                                            <textarea name="origin" placeholder="Gudang Pusat, Jakarta" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                                         </div>
 
                                         <!-- Tujuan Pengiriman -->
                                         <div class="mb-4">
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Tujuan Pengiriman</label>
-                                            <textarea placeholder="Enter a description..." rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                                            <textarea name="destination" placeholder="PT ABC, Bandung" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                                         </div>
 
                                         <!-- Jenis Barang -->
                                         <div class="mb-4">
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Barang</label>
-                                            <input type="text" placeholder="Placeholder" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <input type="text" name="cargo_type" placeholder="Elektronik" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         </div>
 
                                         <!-- Jumlah / Volume Barang -->
                                         <div class="mb-4">
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah / Volume Barang</label>
-                                            <input type="text" placeholder="Placeholder" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <input type="text" name="cargo_volume" placeholder="10 koli / 2.5 ton" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         </div>
 
                                         <!-- Nomor Kendaraan -->
                                         <div class="mb-4">
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Kendaraan</label>
-                                            <input type="text" placeholder="Placeholder" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <input type="text" name="vehicle_plate" placeholder="B 1234 ABC" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         </div>
                                     </div>
                                 </div>
@@ -402,43 +310,19 @@
                                         <!-- Surat Jalan -->
                                         <div class="mb-4">
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Surat Jalan</label>
-                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors cursor-pointer">
-                                                <input type="file" class="hidden" id="suratJalan">
-                                                <label for="suratJalan" class="cursor-pointer">
-                                                    <svg class="w-8 h-8 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                                    </svg>
-                                                    <span class="text-sm text-gray-500">Upload File</span>
-                                                </label>
-                                            </div>
+                                            <input type="file" name="surat_jalan" class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
                                         </div>
 
                                         <!-- Invoice -->
                                         <div class="mb-4">
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Invoice</label>
-                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors cursor-pointer">
-                                                <input type="file" class="hidden" id="invoice">
-                                                <label for="invoice" class="cursor-pointer">
-                                                    <svg class="w-8 h-8 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                                    </svg>
-                                                    <span class="text-sm text-gray-500">Upload File</span>
-                                                </label>
-                                            </div>
+                                            <input type="file" name="invoice" class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
                                         </div>
 
                                         <!-- Delivery Note -->
                                         <div class="mb-4">
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Note</label>
-                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors cursor-pointer">
-                                                <input type="file" class="hidden" id="deliveryNote">
-                                                <label for="deliveryNote" class="cursor-pointer">
-                                                    <svg class="w-8 h-8 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                                    </svg>
-                                                    <span class="text-sm text-gray-500">Upload File</span>
-                                                </label>
-                                            </div>
+                                            <input type="file" name="delivery_note" class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
                                         </div>
                                     </div>
 
@@ -450,29 +334,13 @@
                                         <!-- Foto Muatan -->
                                         <div class="mb-4">
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Foto Muatan</label>
-                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors cursor-pointer">
-                                                <input type="file" class="hidden" id="fotoMuatan" accept="image/*">
-                                                <label for="fotoMuatan" class="cursor-pointer">
-                                                    <svg class="w-8 h-8 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                                    </svg>
-                                                    <span class="text-sm text-gray-500">Upload File</span>
-                                                </label>
-                                            </div>
+                                            <input type="file" name="foto_muatan" accept="image/*" class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
                                         </div>
 
                                         <!-- QR Code -->
                                         <div class="mb-4">
                                             <label class="block text-sm font-medium text-gray-700 mb-2">QR Code</label>
-                                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-400 transition-colors cursor-pointer">
-                                                <input type="file" class="hidden" id="qrCode" accept="image/*">
-                                                <label for="qrCode" class="cursor-pointer">
-                                                    <svg class="w-8 h-8 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                                    </svg>
-                                                    <span class="text-sm text-gray-500">Upload File</span>
-                                                </label>
-                                            </div>
+                                            <input type="file" name="qr_code" accept="image/*" class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
                                         </div>
                                     </div>
 
@@ -483,14 +351,14 @@
 
                                         <!-- Nominal Uang Jalan -->
                                         <div class="mb-4">
-                                            <label class="block text-sm font-medium text-gray-700 mb-2">Nominal Uang Jalan</label>
-                                            <input type="text" placeholder="Nominal" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Nominal Uang Jalan (Rp)</label>
+                                            <input type="number" name="operating_cost" placeholder="150000" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         </div>
                                     </div>
 
                                     <!-- Submit Button -->
                                     <div class="flex justify-end gap-3 pt-4">
-                                        <button type="button" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                                        <button type="button" onclick="resetTaskForm()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
                                             Cancel
                                         </button>
                                         <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
@@ -499,7 +367,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </form>
                     </div>
                 </main>
             </div>
@@ -509,10 +377,83 @@
     @include('components.modals.driver-modal')
 
     <script>
+        // Handle form submit
+        document.getElementById('taskFormDetail').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const driverId = document.getElementById('selectedDriverId').value;
+            const fleetId = document.getElementById('fleetSelect').value;
+
+            if (!driverId || !fleetId) {
+                alert('Please select a driver and a fleet.');
+                return;
+            }
+
+            // Tambahkan ke FormData (jika belum)
+            formData.set('driver_id', driverId);
+            formData.set('fleet_id', fleetId);
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Assigning...';
+
+            try {
+                const response = await fetch('{{ route("manager.tasks.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message);
+                    resetTaskForm(); // Reset form & unselect driver
+                } else {
+                    alert('Error: ' + (result.message || 'Failed to assign task'));
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('Network error. Check console.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+
+        function attachDriverCardListeners() {
+            document.querySelectorAll('.driver-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remove border from all
+                    document.querySelectorAll('.driver-card').forEach(c => {
+                        c.classList.remove('border-orange-400');
+                        c.classList.add('border-gray-300');
+                    });
+                    // Add border to selected
+                    this.classList.remove('border-gray-300');
+                    this.classList.add('border-orange-400');
+
+                    // Set hidden driver_id
+                    const driverId = this.dataset.driverId;
+                    document.getElementById('selectedDriverId').value = driverId;
+
+                    // Show form, hide placeholder
+                    document.getElementById('placeholderTaskMessage').classList.add('hidden');
+                    document.getElementById('taskFormDetail').classList.remove('hidden');
+                });
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // Page switching
             const pageButtons = document.querySelectorAll('.page-button');
             const pageContents = document.querySelectorAll('.page-content');
+            attachDriverCardListeners();
 
             pageButtons.forEach(button => {
                 button.addEventListener('click', function() {
@@ -798,6 +739,17 @@
                     'opacity-100'
                 );
             }, 300);
+        }
+
+        function resetTaskForm() {
+            document.getElementById('taskFormDetail').classList.add('hidden');
+            document.getElementById('placeholderTaskMessage').classList.remove('hidden');
+            document.getElementById('taskFormDetail').reset();
+            document.getElementById('selectedDriverId').value = '';
+            document.querySelectorAll('.driver-card').forEach(card => {
+                card.classList.remove('border-orange-400');
+                card.classList.add('border-gray-300');
+            });
         }
     </script>
     @endsection

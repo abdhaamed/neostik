@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Driver Dashboard') - NeoStik Fleet</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
@@ -15,21 +16,22 @@
                 <div class="flex items-center space-x-8">
                     <h1 class="text-xl font-bold text-blue-600">NeoStik Fleet</h1>
                     <div class="hidden md:flex space-x-1">
-                        <a href="{{ route('driver.dashboard') }}" 
-                           class="px-4 py-2 rounded-lg font-medium transition-colors {{ request()->routeIs('driver.dashboard') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800' }}">
+                        <a href="{{ route('driver.dashboard') }}"
+                            class="px-4 py-2 rounded-lg font-medium transition-colors {{ request()->routeIs('driver.dashboard') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800' }}">
                             Dashboard
                         </a>
-                        <a href="{{ route('driver.shipments') }}" 
-                           class="px-4 py-2 rounded-lg font-medium transition-colors {{ request()->routeIs('driver.shipments') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800' }}">
+                        <a href="{{ route('driver.shipments') }}"
+                            class="px-4 py-2 rounded-lg font-medium transition-colors {{ request()->routeIs('driver.shipments') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800' }}">
                             My Shipments
                         </a>
-                        <a href="{{ route('driver.profile') }}" 
-                           class="px-4 py-2 rounded-lg font-medium transition-colors {{ request()->routeIs('driver.profile') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800' }}">
+                        <a href="{{ route('driver.profile') }}"
+                            class="px-4 py-2 rounded-lg font-medium transition-colors {{ request()->routeIs('driver.profile') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800' }}">
                             Profile
                         </a>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
+                    @auth
                     <!-- User Info -->
                     <div class="hidden md:block text-right">
                         <p class="text-sm font-medium text-gray-800">{{ Auth::user()->name }}</p>
@@ -46,6 +48,7 @@
                             Logout
                         </button>
                     </form>
+                    @endauth
                 </div>
             </div>
         </div>
@@ -70,20 +73,19 @@
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toastMessage');
             const toastIcon = document.getElementById('toastIcon');
-            
-            // Set icon based on type
+
             if (type === 'success') {
                 toastIcon.innerHTML = '<svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
             } else if (type === 'error') {
                 toastIcon.innerHTML = '<svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
             }
-            
+
             toastMessage.textContent = message;
             toast.classList.remove('hidden');
             setTimeout(() => {
                 toast.classList.remove('translate-x-full');
             }, 100);
-            
+
             setTimeout(() => {
                 toast.classList.add('translate-x-full');
                 setTimeout(() => {

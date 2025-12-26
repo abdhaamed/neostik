@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use App\Models\Fleet;
 
 class UserController extends Controller
 {
@@ -17,8 +18,9 @@ class UserController extends Controller
         $drivers = User::where('role', 'driver')
             ->orderBy('created_at', 'desc')
             ->get();
+        $fleets = Fleet::where('status', 'Unassigned')->with('device')->get(); // hanya fleet yang tersedia
 
-        return view('admin-dashboard.manager.user-management', compact('drivers'));
+        return view('admin-dashboard.manager.user-management', compact('drivers', 'fleets'));
     }
 
     /**
