@@ -69,7 +69,26 @@ Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(f
         Route::post('/fleet-device', [FleetDeviceController::class, 'store'])
             ->name('manager.fleet-device.store');
 
-        // User Management Routes
+        /*
+    |--------------------------------------------------------------------------
+    | DEVICE HISTORY (TAMBAHAN)
+    |--------------------------------------------------------------------------
+    */
+
+        // Tambah history device
+        Route::post('/device/{id}/history', [FleetDeviceController::class, 'addDeviceHistory'])
+            ->name('manager.device.history.store');
+
+        // Ambil history device (AJAX / detail)
+        Route::get('/device/{id}/histories', [FleetDeviceController::class, 'getDeviceHistories'])
+            ->name('manager.device.histories');
+
+        /*
+    |--------------------------------------------------------------------------
+    | USER MANAGEMENT
+    |--------------------------------------------------------------------------
+    */
+
         Route::get('/user-management', [UserController::class, 'index'])
             ->name('manager.user-management');
 

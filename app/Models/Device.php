@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Device extends Model
 {
-    protected $fillable = ['fleet_id', 'device_id', 'imei', 'sim_card'];
+    protected $fillable = ['fleet_id', 'device_id', 'imei', 'sim_card' , 'latitude', 'longitude'];
     protected $hidden = ['created_at', 'updated_at'];
 
     public function fleet()

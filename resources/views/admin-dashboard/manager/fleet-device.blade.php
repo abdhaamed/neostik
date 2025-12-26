@@ -1,189 +1,376 @@
 @extends('layouts.app')
+
 @section('content')
 <div class="flex h-screen">
     <!-- Left Bar - Always visible (Logo + Hamburger) -->
     @include('components.sidebar.humbergerButton')
+
     <!-- Sidebar - Default hidden -->
     <aside id="sidebar" class="w-64 bg-white text-gray-800 p-6 border-r border-gray-200 h-screen flex flex-col transform -translate-x-full transition-transform duration-300 fixed z-40 left-0">
         @include('components.sidebar.sidebar')
         @include('components.sidebar.profile')
     </aside>
+
     <!-- Main Content -->
     <div class="flex-1 flex flex-col" style="margin-left: 60px;">
         <header class="px-4 py-2">
-            <!-- Header Top with Tabs -->
             @include('components.headerTop.headerTab')
-            <!-- Status Badges -->
             @include('components.headerTop.badgeStatus')
         </header>
+
         <main class="flex-1 overflow-hidden flex">
             <!-- Left Section - Fleet List -->
             <div class="w-2/5 bg-white border-r border-gray-200 flex flex-col">
-                <!-- Filter & Add Button -->
                 @include('components.content-dashboard.fleetDevice.filterListFleet')
-                <!-- Fleet Cards -->
+
                 <div class="flex-1 overflow-y-auto p-4 space-y-3">
-                    <div class="flex-1 overflow-y-auto p-4 space-y-3">
-                        @if($fleets->isEmpty())
-                        <p class="text-gray-500 text-center py-8">No fleet available.</p>
-                        @else
-                        <div class="grid grid-cols-2 gap-4">
-                            @foreach($fleets as $fleet)
-                            <div class="bg-white rounded-lg border border-gray-300 p-4 hover:shadow-lg transition-all duration-200 cursor-pointer fleet-card"
-                                data-fleet-id="{{ $fleet->fleet_id }}"
-                                data-status="{{ $fleet->status }}"
-                                data-device-id="{{ $fleet->device?->device_id ?? '' }}"
-                                data-imei="{{ $fleet->device?->imei ?? '' }}"
-                                data-sim="{{ $fleet->device?->sim_card ?? '' }}">
-                                <!-- Header -->
-                                <div class="flex items-center justify-between mb-2">
-                                    <h4 class="text-gray-800 text-md">{{ $fleet->fleet_id }}</h4>
-                                    @php
-                                    $statusColor = match($fleet->status) {
-                                    'Completed' => 'bg-green-500',
-                                    'En Route' => 'bg-blue-500',
-                                    'Assigned' => 'bg-orange-500',
-                                    default => 'bg-gray-400',
-                                    };
-                                    @endphp
-                                    <div class="flex items-center space-x-1">
-                                        <span class="w-2 h-2 {{ $statusColor }} rounded-full"></span>
-                                        <span class="text-xs text-gray-600">{{ $fleet->status }}</span>
-                                    </div>
+                    @if($fleets->isEmpty())
+                    <p class="text-gray-500 text-center py-8">No fleet available.</p>
+                    @else
+                    <div class="grid grid-cols-2 gap-4">
+                        @foreach($fleets as $fleet)
+                        <div class="bg-white rounded-lg border border-gray-300 p-4 hover:shadow-lg transition-all duration-200 cursor-pointer fleet-card"
+                            data-fleetCode="{{ $fleet->fleet_id }}"
+                            data-status="{{ $fleet->status }}"
+                            data-weight="{{ $fleet->weight ?? 0 }}"
+                            data-image="{{ $fleet->image ? asset('storage/fleets/' . $fleet->image) : '' }}"
+                            data-deviceId="{{ $fleet->device?->device_id ?? '' }}"
+                            data-imei="{{ $fleet->device?->imei ?? '' }}"
+                            data-sim="{{ $fleet->device?->sim_card ?? '' }}"
+                            data-connection="{{ $fleet->device?->connection_status ?? 'Disconnected' }}"
+                            data-signal="{{ $fleet->device?->signal_strength ?? 'Good' }}"
+                            data-lat="{{ $fleet->device?->latitude ?? '' }}"
+                            data-lng="{{ $fleet->device?->longitude ?? '' }}"
+                            data-speed="{{ $fleet->device?->speed ?? 0 }}"
+                            data-address="{{ $fleet->device?->address ?? '' }}"
+                            data-lastUpdate="{{ $fleet->device?->last_update ? $fleet->device->last_update->format('d M Y, H:i') : '' }}"
+                            data-bukti="{{ json_encode($fleet->getBuktiOperasional(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }}">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="text-gray-800 text-md">{{ $fleet->fleet_id }}</h4>
+                                @php
+                                $statusColor = match($fleet->status) {
+                                'Completed' => 'bg-green-500',
+                                'En Route' => 'bg-blue-500',
+                                'Assigned' => 'bg-orange-500',
+                                default => 'bg-gray-400',
+                                };
+                                @endphp
+                                <div class="flex items-center space-x-1">
+                                    <span class="w-2 h-2 {{ $statusColor }} rounded-full"></span>
+                                    <span class="text-xs text-gray-600">{{ $fleet->status }}</span>
                                 </div>
-
-                                <!-- Content Grid -->
-                                <div class="grid grid-cols-3 gap-4 mb-4">
-                                    <div class="flex flex-col">
-                                        <span class="text-md font-bold text-gray-800">00:00:00</span>
-                                        <span class="text-xs text-gray-500 mt-1">—</span>
-                                    </div>
-
-                                    <div class="flex flex-col space-y-2 relative pl-6">
-                                        <div class="absolute left-3 top-2 bottom-2 w-0.5 bg-gray-300"></div>
-                                        @foreach(['Completed', 'En Route', 'Assigned', 'Unassigned'] as $status)
-                                        <div class="flex items-center space-x-2 relative z-10">
-                                            <div class="w-3 h-3 rounded-full {{ $status === $fleet->status ? match($status) {
-                                        'Completed' => 'bg-green-500',
-                                        'En Route' => 'bg-blue-500',
-                                        'Assigned' => 'bg-orange-500',
-                                        default => 'bg-gray-400'
-                                    } : 'bg-gray-400' }} border-2 border-white"></div>
-                                            <span class="text-xs text-gray-700">{{ $status }}</span>
-                                        </div>
-                                        @endforeach
-                                    </div>
-                                    <div></div>
-                                </div>
-
-                                <!-- Truck -->
-                                <div class="bg-gray-100 rounded h-24 overflow-hidden">
-                                    <img
-                                        src="{{ $fleet->image_url }}"
-                                        alt="Fleet Image"
-                                        class="w-full h-full object-cover">
-                                </div>
-
                             </div>
-                            @endforeach
+
+                            <div class="grid grid-cols-3 gap-4 mb-4">
+                                <div class="flex flex-col">
+                                    <span class="text-md font-bold text-gray-800">00:00:00</span>
+                                    <span class="text-xs text-gray-500 mt-1">—</span>
+                                </div>
+
+                                <div class="flex flex-col space-y-2 relative pl-6">
+                                    <div class="absolute left-3 top-2 bottom-2 w-0.5 bg-gray-300"></div>
+                                    @foreach(['Completed', 'En Route', 'Assigned', 'Unassigned'] as $status)
+                                    <div class="flex items-center space-x-2 relative z-10">
+                                        <div class="w-3 h-3 rounded-full {{ $status === $fleet->status ? match($status) {
+                                                'Completed' => 'bg-green-500',
+                                                'En Route' => 'bg-blue-500',
+                                                'Assigned' => 'bg-orange-500',
+                                                default => 'bg-gray-400'
+                                            } : 'bg-gray-400' }} border-2 border-white"></div>
+                                        <span class="text-xs text-gray-700">{{ $status }}</span>
+                                    </div>
+                                    @endforeach
+                                </div>
+                                <div></div>
+                            </div>
+
+                            <div class="bg-gray-100 rounded h-24 overflow-hidden">
+                                @if($fleet->image)
+                                <img src="{{ asset('storage/fleets/' . $fleet->image) }}" alt="Fleet Image" class="w-full h-full object-cover">
+                                @else
+                                <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                                    </svg>
+                                </div>
+                                @endif
+                            </div>
                         </div>
-                        @endif
+                        @endforeach
                     </div>
+                    @endif
                 </div>
             </div>
 
-
             <!-- Right Section - Details -->
             <div class="flex-1 bg-gray-50 overflow-y-auto" id="detailPanel">
-
-                <!-- DEFAULT / PLACEHOLDER -->
+                <!-- Placeholder -->
                 <div id="placeholderMessage" class="h-full flex flex-col justify-center items-center text-gray-400 text-lg">
                     <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 7h18M3 12h18M3 17h18" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18" />
                     </svg>
                     <p class="text-gray-500">Choose a fleet to see detail</p>
                 </div>
 
-                <!-- REAL DETAIL (HIDDEN FIRST) -->
-                <div id="realDetail" class="hidden">
-                    @include('components.content-dashboard.fleetDevice.detailFleetDevice')
+                <!-- REAL DETAIL (HIDDEN BY DEFAULT) -->
+                <div id="realDetail" class="hidden p-6">
+
+                    <!-- Fleet Header -->
+                    <div class="mb-6">
+                        <h2 id="fleetHeaderCode" class="text-2xl font-bold text-gray-800" data-label="fleetId">FLEET-001</h2>
+                        <div class="flex items-center text-sm mt-1">
+                            <span class="w-3 h-3 rounded-full mr-2"></span>
+                            <span>Unassigned</span>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="border-b border-gray-200 mb-6">
+                        <nav class="-mb-px flex space-x-6">
+                            <button class="tab-button py-3 px-1 border-b-2 font-medium text-sm text-gray-600 border-transparent hover:text-gray-700 hover:border-gray-300" data-tab="fleet">
+                                Fleet
+                            </button>
+                            <button class="tab-button py-3 px-1 border-b-2 font-medium text-sm text-gray-600 border-transparent hover:text-gray-700 hover:border-gray-300" data-tab="device">
+                                Device
+                            </button>
+                        </nav>
+                    </div>
+
+                    <!-- Tab Content: Fleet -->
+                    <div id="contentFleet" class="tab-content hidden">
+
+                        <!-- Route Section (Fleet Info + Truck + Timeline) -->
+                        <div class="bg-white rounded-lg shadow p-6 mb-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-semibold text-gray-800">Route</h3>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <!-- Left Side: Truck and Status -->
+                                <div>
+                                    <!-- Truck with Weight Badge -->
+                                    <div class="flex justify-center mb-6">
+                                        <div style="position: relative; display: inline-block;">
+                                            <!-- Weight Badge Overlay -->
+                                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">
+                                                <div class="bg-transparent text-gray-800 px-8 py-2 rounded shadow-lg">
+                                                    <span class="text-base font-bold" data-label="fleetWeight">0 kg</span>
+                                                </div>
+                                            </div>
+                                            <!-- Truck Image -->
+                                            <img src="" alt="Truck" data-label="fleetImage" class="w-64 h-32 bg-gray-300 rounded object-cover">
+                                        </div>
+                                    </div>
+
+                                    <!-- Route Status Timeline -->
+                                    <div class="space-y-4">
+                                        <div class="flex items-start space-x-3" data-bukti-status="Unassigned">
+                                            <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0 mt-1">
+                                                <div class="w-3 h-3 rounded-full bg-white"></div>
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-gray-800">Unassigned</p>
+                                                <p class="text-sm text-gray-600" data-bukti="recipient">—</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-start space-x-3" data-bukti-status="Assigned">
+                                            <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0 mt-1">
+                                                <div class="w-3 h-3 rounded-full bg-white"></div>
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-gray-800">Assigned</p>
+                                                <p class="text-sm text-gray-600" data-bukti="recipient">—</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-start space-x-3" data-bukti-status="En Route">
+                                            <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0 mt-1">
+                                                <div class="w-3 h-3 rounded-full bg-white"></div>
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-gray-800">En Route</p>
+                                                <p class="text-sm text-gray-600" data-bukti="recipient">—</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-start space-x-3" data-bukti-status="Completed">
+                                            <div class="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0 mt-1">
+                                                <div class="w-3 h-3 rounded-full bg-white"></div>
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-gray-800">Completed</p>
+                                                <p class="text-sm text-gray-600" data-bukti="recipient">—</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- Right Side: Map -->
+                                <!-- Leaflet Map Container -->
+                                <div id="fleetMap" class="rounded-lg overflow-hidden h-80 w-full">
+                                    <div class="w-full h-full flex items-center justify-center text-gray-500">
+                                        <div class="text-center">
+                                            <svg class="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                                            </svg>
+                                            <p class="text-sm">Map Integration Coming Soon</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bukti Operasional Section (as Table) -->
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Bukti Operasional</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr class="border-b-2 border-gray-200">
+                                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Recipient</th>
+                                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Description</th>
+                                            <th class="text-left py-3 px-4 font-semibold text-gray-700">Report</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors" data-bukti-status="Unassigned">
+                                            <td class="py-3 px-4 text-gray-800">Unassigned</td>
+                                            <td class="py-3 px-4 text-gray-800" data-bukti="recipient">—</td>
+                                            <td class="py-3 px-4 text-gray-600" data-bukti="description">—</td>
+                                            <td class="py-3 px-4">
+                                                <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded text-xs font-medium transition-colors">
+                                                    Show
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors" data-bukti-status="Assigned">
+                                            <td class="py-3 px-4 text-gray-800">Assigned</td>
+                                            <td class="py-3 px-4 text-gray-800" data-bukti="recipient">—</td>
+                                            <td class="py-3 px-4 text-gray-600" data-bukti="description">—</td>
+                                            <td class="py-3 px-4">
+                                                <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded text-xs font-medium transition-colors">
+                                                    Show
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors" data-bukti-status="En Route">
+                                            <td class="py-3 px-4 text-gray-800">En Route</td>
+                                            <td class="py-3 px-4 text-gray-800" data-bukti="recipient">—</td>
+                                            <td class="py-3 px-4 text-gray-600" data-bukti="description">—</td>
+                                            <td class="py-3 px-4">
+                                                <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded text-xs font-medium transition-colors">
+                                                    Show
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr class="hover:bg-gray-50 transition-colors" data-bukti-status="Completed">
+                                            <td class="py-3 px-4 text-gray-800">Completed</td>
+                                            <td class="py-3 px-4 text-gray-800" data-bukti="recipient">—</td>
+                                            <td class="py-3 px-4 text-gray-600" data-bukti="description">—</td>
+                                            <td class="py-3 px-4">
+                                                <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1.5 rounded text-xs font-medium transition-colors">
+                                                    Show
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Tab Content: Device -->
+                    <div id="contentDevice" class="tab-content hidden">
+
+                        <!-- Device Information -->
+                        <div class="bg-white rounded-lg shadow p-6 mb-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-xl font-bold text-gray-800">Device Information</h3>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="text-sm font-semibold text-gray-600">Device ID</label>
+                                        <p class="text-base text-gray-800 mt-1" data-label="deviceId">—</p>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-semibold text-gray-600">IMEI Number</label>
+                                        <p class="text-base text-gray-800 mt-1" data-label="deviceImei">—</p>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-semibold text-gray-600">SIM Card Number</label>
+                                        <p class="text-base text-gray-800 mt-1" data-label="deviceSim">—</p>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="text-sm font-semibold text-gray-600">Connection Status</label>
+                                        <div class="flex items-center mt-1">
+                                            <span class="w-3 h-3 bg-gray-500 rounded-full mr-2"></span>
+                                            <span class="text-base text-gray-600 font-medium" data-label="deviceStatus">Disconnected</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-semibold text-gray-600">Last Update</label>
+                                        <p class="text-base text-gray-800 mt-1" data-label="deviceUpdate">—</p>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-semibold text-gray-600">Signal Strength</label>
+                                        <div class="flex items-center mt-1">
+                                            <div class="flex space-x-1">
+                                                <div class="w-1 h-3 bg-gray-300 rounded" data-signal-bar></div>
+                                                <div class="w-1 h-4 bg-gray-300 rounded" data-signal-bar></div>
+                                                <div class="w-1 h-5 bg-gray-300 rounded" data-signal-bar></div>
+                                                <div class="w-1 h-6 bg-gray-300 rounded" data-signal-bar></div>
+                                                <div class="w-1 h-7 bg-gray-300 rounded" data-signal-bar></div>
+                                            </div>
+                                            <span class="text-sm text-gray-800 ml-2" data-label="deviceSignal">—</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Current Location -->
+                        <div class="bg-white rounded-lg shadow p-6 mb-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">Current Location</h3>
+                            <div class="space-y-4 mb-4">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="text-sm font-semibold text-gray-600">Latitude</label>
+                                        <p data-label="deviceLat">{{ $device->latitude ?? '—' }}</p>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-semibold text-gray-600">Longitude</label>
+                                        <p data-label="deviceLng">{{ $device->longitude ?? '—' }}</p>
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-semibold text-gray-600">Speed</label>
+                                        <p class="text-base text-gray-800 mt-1" data-label="deviceSpeed">0 km/h</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-semibold text-gray-600">Address</label>
+                                    <p class="text-base text-gray-800 mt-1" data-label="deviceAddress">—</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
-
             </div>
-
         </main>
     </div>
 </div>
 
 <!-- Add Fleet Modal -->
-<div id="addFleetModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-lg w-full max-w-md p-6">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold text-gray-800">Add New Fleet</h3>
-            <button type="button" onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
-
-        <form id="addFleetForm" enctype="multipart/form-data" method="POST" action="{{ route('manager.fleet-device.store') }}">
-            @csrf
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Fleet ID</label>
-                <input type="text" name="fleet_id" required
-                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. HD-99671212">
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Device ID</label>
-                <input type="text" name="device_id" required
-                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="e.g. GPS-HD-99671212">
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">IMEI</label>
-                <input type="text" name="imei" required
-                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="862170051234567">
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">SIM Card Number</label>
-                <input type="text" name="sim_card"
-                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="+62 812-3456-7890">
-            </div>
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="Unassigned">Unassigned</option>
-                    <option value="Assigned">Assigned</option>
-                    <option value="En Route">En Route</option>
-                    <option value="Completed">Completed</option>
-                </select>
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Fleet Image
-                </label>
-                <input type="file"
-                    name="image"
-                    accept="image/*"
-                    class="w-full text-sm text-gray-600
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-blue-50 file:text-blue-600
-                            hover:file:bg-blue-100">
-            </div>
-            <div class="flex justify-end space-x-3">
-                <button type="button" onclick="closeModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded hover:bg-gray-50">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Add Fleet</button>
-            </div>
-        </form>
-    </div>
-</div>
+@include('components.modals.fleet-modal')
 
 <script>
     // Modal
@@ -194,7 +381,7 @@
     function closeModal() {
         document.getElementById('addFleetModal').classList.add('hidden');
     }
-    document.getElementById('addFleetModal').addEventListener('click', e => {
+    document.getElementById('addFleetModal')?.addEventListener('click', e => {
         if (e.target === e.currentTarget) closeModal();
     });
 
@@ -204,10 +391,15 @@
         const tabContents = document.querySelectorAll('.tab-content');
         tabButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                tabButtons.forEach(b => b.classList.replace('text-blue-600', 'text-gray-600').classList.remove('border-b-2', 'border-blue-600'));
-                btn.classList.replace('text-gray-600', 'text-blue-600').classList.add('border-b-2', 'border-blue-600');
+                tabButtons.forEach(b => {
+                    b.classList.remove('text-blue-600', 'border-b-2', 'border-blue-600');
+                    b.classList.add('text-gray-600');
+                });
+                btn.classList.remove('text-gray-600');
+                btn.classList.add('text-blue-600', 'border-b-2', 'border-blue-600');
                 tabContents.forEach(c => c.classList.add('hidden'));
-                document.getElementById('content' + btn.dataset.tab.charAt(0).toUpperCase() + btn.dataset.tab.slice(1)).classList.remove('hidden');
+                const tabName = btn.dataset.tab.charAt(0).toUpperCase() + btn.dataset.tab.slice(1);
+                document.getElementById('content' + tabName)?.classList.remove('hidden');
             });
         });
     });
@@ -217,112 +409,268 @@
         document.querySelectorAll('.fleet-card').forEach(card => {
             if (!card.dataset.listened) {
                 card.addEventListener('click', function() {
-                    const fleetId = this.dataset.fleetId;
-                    const status = this.dataset.status;
-                    const deviceId = this.dataset.deviceId || 'GPS-' + fleetId;
-                    const imei = this.dataset.imei || '86217005XXXXXXX';
-                    const sim = this.dataset.sim || '+62 —';
+                    const data = this.dataset;
 
                     document.getElementById('placeholderMessage').classList.add('hidden');
                     document.getElementById('realDetail').classList.remove('hidden');
 
-                    // Update header
-                    document.querySelector('[data-label="fleetId"]').textContent = fleetId;
+                    // Header fleet code
+                    document.getElementById('fleetHeaderCode').textContent = data.fleetCode;
 
-                    // Update device data
-                    const fields = {
-                        deviceId,
-                        imei,
-                        deviceSim: sim,
-                        deviceStatus: 'Connected',
-                        deviceUpdate: new Date().toLocaleString('id-ID') + ' WIB',
-                        deviceSignal: 'Strong',
-                        deviceLat: '-6.40248' + Math.floor(Math.random() * 10),
-                        deviceLng: '106.79424' + Math.floor(Math.random() * 10),
-                        deviceSpeed: Math.floor(Math.random() * 80) + ' km/h',
-                        deviceAddress: 'Auto-generated location'
+                    // Status badge
+                    const statusEl = document.querySelector('#realDetail .flex.items-center.text-sm');
+                    if (statusEl) {
+                        const colorMap = {
+                            'En Route': {
+                                text: 'text-blue-600'
+                            },
+                            'Assigned': {
+                                text: 'text-orange-600'
+                            },
+                            'Completed': {
+                                text: 'text-green-600'
+                            },
+                            'Unassigned': {
+                                text: 'text-gray-600'
+                            }
+                        };
+                        const colors = colorMap[data.status] || colorMap['Unassigned'];
+                        statusEl.className = `flex items-center text-sm ${colors.text}`;
+                        const textSpan = statusEl.querySelector('span:last-child');
+                        if (textSpan) textSpan.textContent = data.status;
+                    }
+
+                    // Fleet data
+                    const fleetFields = {
+                        'fleetWeight': data.weight ? `${data.weight} kg` : '0 kg',
+                        'fleetStatus': data.status
                     };
-
-                    Object.entries(fields).forEach(([key, val]) => {
+                    Object.entries(fleetFields).forEach(([key, val]) => {
                         const el = document.querySelector(`[data-label="${key}"]`);
                         if (el) el.textContent = val;
                     });
 
-                    // Active status di header
-                    const statusEl = document.querySelector('#realDetail .text-green-600');
-                    if (statusEl) {
-                        let colorClass = 'bg-gray-400',
-                            textColor = 'text-gray-600';
-                        if (status === 'En Route') {
-                            colorClass = 'bg-blue-500';
-                            textColor = 'text-blue-600';
-                        } else if (status === 'Assigned') {
-                            colorClass = 'bg-orange-500';
-                            textColor = 'text-orange-600';
-                        } else if (status === 'Completed') {
-                            colorClass = 'bg-green-500';
-                            textColor = 'text-green-600';
-                        }
-                        statusEl.querySelector('span').className = ``;
-                        statusEl.className = `flex items-center text-sm ${textColor}`;
-                        statusEl.lastElementChild.textContent = status;
+                    // Fleet image
+                    const fleetImg = document.querySelector('[data-label="fleetImage"]');
+                    if (fleetImg) {
+                        fleetImg.src = data.image || '';
+                        fleetImg.classList.toggle('hidden', !data.image);
                     }
 
-                    // Default ke tab Fleet
-                    document.querySelector('.tab-button[data-tab="fleet"]').click();
+                    // Timeline & bukti
+                    updateRouteTimeline(data.status);
+                    try {
+                        const bukti = JSON.parse(data.bukti);
+                        updateBuktiOperasional(bukti);
+                    } catch (e) {
+                        console.error('Error parsing bukti:', e);
+                    }
+
+                    // Device data
+                    const deviceFields = {
+                        'deviceId': data.deviceId || 'GPS-' + data.fleetCode,
+                        'deviceImei': data.imei || '—',
+                        'deviceSim': data.sim || '—',
+                        'deviceStatus': data.connection || 'Disconnected',
+                        'deviceUpdate': data.lastUpdate || '—',
+                        'deviceSignal': data.signal || 'Good',
+                        'deviceLat': data.lat || '—',
+                        'deviceLng': data.lng || '—',
+                        'deviceSpeed': data.speed ? `${data.speed} km/h` : '0 km/h',
+                        'deviceAddress': data.address || '—'
+                    };
+                    Object.entries(deviceFields).forEach(([key, val]) => {
+                        const el = document.querySelector(`[data-label="${key}"]`);
+                        if (el) el.textContent = val;
+                    });
+
+                    updateConnectionStatus(data.connection);
+                    updateSignalBars(data.signal);
+
+                    // Default tab
+                    document.querySelector('.tab-button[data-tab="fleet"]')?.click();
+
+                    updateFleetMap(data.lat, data.lng, data.address);
+
+                    initFleetMap();
                 });
                 card.dataset.listened = 'true';
             }
         });
     }
 
-    // Form submit (AJAX)
-    document.getElementById('addFleetForm')?.addEventListener('submit', async function(e) {
-    e.preventDefault();
+    function updateRouteTimeline(currentStatus) {
+        const statuses = ['Unassigned', 'Assigned', 'En Route', 'Completed'];
+        const colorMap = {
+            'Unassigned': 'bg-gray-300',
+            'Assigned': 'bg-orange-500',
+            'En Route': 'bg-blue-500',
+            'Completed': 'bg-green-500'
+        };
+        statuses.forEach(status => {
+            const el = document.querySelector(`[data-status="${status}"]`);
+            if (el) {
+                const circle = el.querySelector('.w-6');
+                if (circle) {
+                    circle.className = `w-6 h-6 rounded-full ${status === currentStatus ? colorMap[status] : 'bg-gray-300'} flex items-center justify-center flex-shrink-0 mt-1`;
+                }
+            }
+        });
+    }
 
-    const formData = new FormData(this);
-    const btn = this.querySelector('button[type="submit"]');
-    btn.disabled = true;
-    btn.textContent = 'Saving...';
-
-    try {
-        const res = await fetch('/manager/fleet-device', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': document
-                    .querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json'
-            },
-            credentials: 'same-origin'
+    function updateBuktiOperasional(bukti) {
+        // Buat map untuk akses cepat
+        const buktiMap = {};
+        bukti.forEach(item => {
+            buktiMap[item.status] = item;
         });
 
-        if (!res.ok) {
-            const text = await res.text();
-            throw new Error(text);
-        }
+        // Update TABEL (cari di tbody)
+        document.querySelectorAll('#contentFleet table tbody tr').forEach(row => {
+            const status = row.dataset.buktiStatus;
+            if (buktiMap[status]) {
+                const recipientEl = row.querySelector('[data-bukti="recipient"]');
+                const descEl = row.querySelector('[data-bukti="description"]');
+                if (recipientEl) recipientEl.textContent = buktiMap[status].recipient || '—';
+                if (descEl) descEl.textContent = buktiMap[status].description || '—';
+            }
+        });
 
-        const data = await res.json();
-
-        if (data.success) {
-            closeModal();
-            this.reset();
-            window.location.reload();
-        } else {
-            alert(data.message || 'Failed to save');
-        }
-
-    } catch (err) {
-        console.error('FETCH ERROR:', err);
-        alert('Network error (lihat console)');
-    } finally {
-        btn.disabled = false;
-        btn.textContent = 'Add Fleet';
+        // Update TIMELINE (cari di .space-y-4 di dalam #contentFleet)
+        document.querySelectorAll('#contentFleet .space-y-4 > div').forEach(item => {
+            const status = item.dataset.buktiStatus;
+            if (buktiMap[status]) {
+                const recipientEl = item.querySelector('[data-bukti="recipient"]');
+                if (recipientEl) recipientEl.textContent = buktiMap[status].recipient || '—';
+                // ❌ Jangan update description di timeline
+            }
+        });
     }
-});
 
+    function updateConnectionStatus(status) {
+        const statusEl = document.querySelector('[data-label="deviceStatus"]');
+        if (statusEl) {
+            const parent = statusEl.closest('.flex.items-center');
+            const dot = parent?.querySelector('.w-3.h-3');
+            let colorClass = 'bg-red-500',
+                textColor = 'text-red-600';
+            if (status === 'Connected') {
+                colorClass = 'bg-green-500';
+                textColor = 'text-green-600';
+            } else if (status === 'Idle') {
+                colorClass = 'bg-yellow-500';
+                textColor = 'text-yellow-600';
+            }
+            if (dot) dot.className = `w-3 h-3 ${colorClass} rounded-full mr-2`;
+            statusEl.className = `text-base ${textColor} font-medium`;
+        }
+    }
 
-    // Attach listeners saat load
+    function updateSignalBars(strength) {
+        const bars = document.querySelectorAll('[data-signal-bar]');
+        const strengthMap = {
+            'Weak': 1,
+            'Fair': 2,
+            'Good': 3,
+            'Strong': 4,
+            'Excellent': 5
+        };
+        const level = strengthMap[strength] || 3;
+        bars.forEach((bar, index) => {
+            if (index < level) {
+                bar.className = bar.className.replace('bg-gray-300', 'bg-green-500');
+            } else {
+                bar.className = bar.className.replace('bg-green-500', 'bg-gray-300');
+            }
+        });
+    }
+
+    // Form AJAX
+    document.getElementById('addFleetForm')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const btn = this.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        try {
+            const res = await fetch('{{ route("manager.fleet-device.store") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                credentials: 'same-origin'
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                closeModal();
+                this.reset();
+                window.location.reload();
+            } else {
+                alert(data.message || 'Failed to save');
+            }
+        } catch (err) {
+            console.error('FETCH ERROR:', err);
+            alert('Network error (check console)');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Add Fleet';
+        }
+    });
+
+    // Inisialisasi peta (hanya sekali)
+    let fleetMap = null;
+    let fleetMarker = null;
+
+    function initFleetMap() {
+        if (fleetMap) return; // Sudah diinisialisasi
+
+        const mapContainer = document.getElementById('fleetMap');
+        if (!mapContainer) return;
+
+        // Buat peta
+        fleetMap = L.map('fleetMap').setView([-6.2088, 106.8456], 10); // Default: Jakarta
+
+        // Tambahkan tile layer (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(fleetMap);
+
+        // Buat marker kosong
+        fleetMarker = L.marker([0, 0], {
+            draggable: false,
+            title: 'Current Location'
+        }).addTo(fleetMap);
+        fleetMarker.setOpacity(0); // Sembunyikan dulu
+    }
+
+    // Update lokasi peta
+    function updateFleetMap(lat, lng, address) {
+        if (!fleetMap || !fleetMarker) return;
+
+        if (lat && lng && lat !== '—' && lng !== '—') {
+            const latNum = parseFloat(lat);
+            const lngNum = parseFloat(lng);
+            if (!isNaN(latNum) && !isNaN(lngNum)) {
+                fleetMap.setView([latNum, lngNum], 15);
+                fleetMarker.setLatLng([latNum, lngNum]);
+                fleetMarker.setOpacity(1);
+                fleetMarker.bindPopup(
+                    `${(address && address !== '—') ? address : 'No address'}`, {
+                        maxWidth: 200
+                    } 
+                ).openPopup();
+            } else {
+                fleetMarker.setOpacity(0);
+            }
+        } else {
+            fleetMarker.setOpacity(0);
+        }
+    }
+
+    // Init
     document.addEventListener('DOMContentLoaded', attachCardListeners);
 </script>
 @endsection
