@@ -3,20 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
-use App\Models\User;
 use App\Models\Fleet;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
-    public function index()
+    public function assign(Request $request)
     {
-        // Tidak digunakan — assignment panel dibuka dari halaman driver
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
+        $request->validate([
             'driver_id' => 'required|exists:users,id',
             'fleet_id' => 'required|exists:fleets,id',
             'origin' => 'required|string',
@@ -27,40 +23,38 @@ class TaskController extends Controller
             'operating_cost' => 'nullable|numeric|min:0',
         ]);
 
-        // Cek apakah fleet masih "Unassigned"
-        $fleet = Fleet::findOrFail($validated['fleet_id']);
+        $fleet = Fleet::findOrFail($request->fleet_id);
         if ($fleet->status !== 'Unassigned') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Fleet is already assigned or in use.'
-            ], 422);
+            return response()->json(['error' => 'Fleet is not available for assignment'], 400);
         }
 
-        // Buat tugas
         $task = Task::create([
-            'driver_id' => $validated['driver_id'],
-            'fleet_id' => $validated['fleet_id'],
+            'driver_id' => $request->driver_id,
+            'fleet_id' => $request->fleet_id,
             'task_number' => Task::generateTaskNumber(),
-            'origin' => $validated['origin'],
-            'destination' => $validated['destination'],
-            'cargo_type' => $validated['cargo_type'],
-            'cargo_volume' => $validated['cargo_volume'],
-            'vehicle_plate' => $validated['vehicle_plate'],
-            'operating_cost' => $validated['operating_cost'],
+            'origin' => $request->origin,
+            'destination' => $request->destination,
+            'cargo_type' => $request->cargo_type,
+            'cargo_volume' => $request->cargo_volume,
+            'vehicle_plate' => $request->vehicle_plate,
+            'operating_cost' => $request->operating_cost,
             'status' => 'assigned',
         ]);
 
-        // Update status fleet → Assigned
+        // ✅ Isi bukti Unassigned secara otomatis
+        $adminName = Auth::user()->name;
+        $driver = User::find($request->driver_id);
+        $fleet->updateBuktiOperasional([
+            'unassigned_recipient' => $adminName,
+            'unassigned_description' => "Task assigned to {$driver->name}",
+            'unassigned_report' => null,
+        ]);
+
         $fleet->update(['status' => 'Assigned']);
 
-        // (Opsional) Update driver availability → on_duty
-        $driver = User::findOrFail($validated['driver_id']);
-        $driver->update(['availability' => 'on_duty']);
-
         return response()->json([
-            'success' => true,
             'message' => 'Task assigned successfully',
-            'task' => $task->load('driver', 'fleet'),
-        ]);
+            'task' => $task
+        ], 201);
     }
 }

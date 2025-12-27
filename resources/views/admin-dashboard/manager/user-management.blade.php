@@ -167,7 +167,6 @@
                         </div>
 
                         <!-- Driver Cards -->
-                        <!-- Driver Cards -->
                         <div class="flex-1 overflow-y-auto p-4">
                             <div class="grid grid-cols-2 gap-4">
                                 @forelse($drivers as $driver)
@@ -302,47 +301,6 @@
 
                                 <!-- Right Column - Documents & Evidence -->
                                 <div class="space-y-6">
-                                    <!-- Document Task -->
-                                    <div>
-                                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Document Task</h3>
-                                        <p class="text-sm text-gray-600 mb-4">Official shipping documents</p>
-
-                                        <!-- Surat Jalan -->
-                                        <div class="mb-4">
-                                            <label class="block text-sm font-medium text-gray-700 mb-2">Surat Jalan</label>
-                                            <input type="file" name="surat_jalan" class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
-                                        </div>
-
-                                        <!-- Invoice -->
-                                        <div class="mb-4">
-                                            <label class="block text-sm font-medium text-gray-700 mb-2">Invoice</label>
-                                            <input type="file" name="invoice" class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
-                                        </div>
-
-                                        <!-- Delivery Note -->
-                                        <div class="mb-4">
-                                            <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Note</label>
-                                            <input type="file" name="delivery_note" class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
-                                        </div>
-                                    </div>
-
-                                    <!-- Evidence Goods -->
-                                    <div>
-                                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Evidence Goods</h3>
-                                        <p class="text-sm text-gray-600 mb-4">Initial proof before the driver leaves</p>
-
-                                        <!-- Foto Muatan -->
-                                        <div class="mb-4">
-                                            <label class="block text-sm font-medium text-gray-700 mb-2">Foto Muatan</label>
-                                            <input type="file" name="foto_muatan" accept="image/*" class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
-                                        </div>
-
-                                        <!-- QR Code -->
-                                        <div class="mb-4">
-                                            <label class="block text-sm font-medium text-gray-700 mb-2">QR Code</label>
-                                            <input type="file" name="qr_code" accept="image/*" class="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100">
-                                        </div>
-                                    </div>
 
                                     <!-- Operating Costs -->
                                     <div>

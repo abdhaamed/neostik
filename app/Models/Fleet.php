@@ -4,16 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class Fleet extends Model
 {
     use HasFactory;
 
+    // ✅ Field yang BOLEH diisi oleh ADMIN (saat create/update fleet/device)
     protected $fillable = [
         'fleet_id',
         'status',
         'image',
         'weight',
+    ];
+
+    // ✅ Field tambahan yang hanya BOLEH diisi oleh DRIVER (via TaskController)
+    protected $fillableByDriver = [
         'unassigned_recipient',
         'unassigned_description',
         'unassigned_report',
@@ -32,13 +38,49 @@ class Fleet extends Model
         'weight' => 'decimal:2',
     ];
 
-    // Relationship: Fleet has one Device
     public function device()
     {
         return $this->hasOne(Device::class);
     }
 
-    // Helper method to get bukti operasional by status
+    // ✅ Method khusus untuk update bukti operasional (hanya dipanggil oleh TaskController)
+    // app/Models/Fleet.php
+    // app/Models/Fleet.php
+    public function updateBuktiOperasional(array $data)
+    {
+        $allowed = array_intersect_key($data, array_flip($this->fillableByDriver));
+
+        // ✅ Log data yang akan disimpan
+        Log::info('Preparing to save bukti operasional', [
+            'fleet_id' => $this->id,
+            'data' => $allowed
+        ]);
+
+        // ✅ Simpan langsung kolom spesifik (bukan fill)
+        foreach ($allowed as $key => $value) {
+            $this->$key = $value;
+        }
+
+        // ✅ Force save dan refresh
+        $saved = $this->save();
+
+        if ($saved) {
+            // ✅ Refresh model dari database untuk memastikan
+            $this->refresh();
+            Log::info('Bukti operasional saved and refreshed', [
+                'fleet_id' => $this->id,
+                'current_data' => $this->only(array_keys($allowed))
+            ]);
+        } else {
+            Log::error('Failed to save bukti operasional', [
+                'fleet_id' => $this->id,
+                'data' => $allowed
+            ]);
+        }
+
+        return $saved;
+    }
+
     public function getBuktiOperasional()
     {
         return [

@@ -30,8 +30,10 @@
                     <div class="grid grid-cols-2 gap-4">
                         @foreach($fleets as $fleet)
                         <div class="bg-white rounded-lg border border-gray-300 p-4 hover:shadow-lg transition-all duration-200 cursor-pointer fleet-card"
+                            data-fleet-id="{{ $fleet->id }}"
                             data-fleetCode="{{ $fleet->fleet_id }}"
                             data-status="{{ $fleet->status }}"
+                            data-accepted="{{ $fleet->accepted_by_admin ? 'true' : 'false' }}"
                             data-weight="{{ $fleet->weight ?? 0 }}"
                             data-image="{{ $fleet->image ? asset('storage/fleets/' . $fleet->image) : '' }}"
                             data-deviceId="{{ $fleet->device?->device_id ?? '' }}"
@@ -223,7 +225,7 @@
                         </div>
 
                         <!-- Bukti Operasional Section (as Table) -->
-                        <div class="bg-white rounded-lg shadow p-6">
+                        <div class="bg-white rounded-lg shadow p-6 mb-6">
                             <h3 class="text-xl font-bold text-gray-800 mb-4">Bukti Operasional</h3>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-sm">
@@ -279,6 +281,18 @@
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+
+                        <!-- Admin Acceptance Section (Dynamic) -->
+                        <div id="acceptSection" class="mt-4 p-4 bg-blue-50 rounded-lg hidden">
+                            <h3 class="font-semibold text-blue-800 mb-2">Admin Verification</h3>
+                            <p class="text-sm text-blue-700 mb-3">This task is completed by the driver. Please verify and accept.</p>
+                            <form id="acceptForm" method="POST">
+                                @csrf
+                                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                                    Accept Completed Task
+                                </button>
+                            </form>
                         </div>
 
                     </div>
@@ -344,11 +358,11 @@
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div>
                                         <label class="text-sm font-semibold text-gray-600">Latitude</label>
-                                        <p data-label="deviceLat">{{ $device->latitude ?? '—' }}</p>
+                                        <p data-label="deviceLat">—</p>
                                     </div>
                                     <div>
                                         <label class="text-sm font-semibold text-gray-600">Longitude</label>
-                                        <p data-label="deviceLng">{{ $device->longitude ?? '—' }}</p>
+                                        <p data-label="deviceLng">—</p>
                                     </div>
                                     <div>
                                         <label class="text-sm font-semibold text-gray-600">Speed</label>
@@ -415,7 +429,7 @@
                     document.getElementById('realDetail').classList.remove('hidden');
 
                     // Header fleet code
-                    document.getElementById('fleetHeaderCode').textContent = data.fleetCode;
+                    document.getElementById('fleetHeaderCode').textContent = data.fleetcode;
 
                     // Status badge
                     const statusEl = document.querySelector('#realDetail .flex.items-center.text-sm');
@@ -468,11 +482,11 @@
 
                     // Device data
                     const deviceFields = {
-                        'deviceId': data.deviceId || 'GPS-' + data.fleetCode,
+                        'deviceId': data.deviceid || 'GPS-' + data.fleetcode,
                         'deviceImei': data.imei || '—',
                         'deviceSim': data.sim || '—',
                         'deviceStatus': data.connection || 'Disconnected',
-                        'deviceUpdate': data.lastUpdate || '—',
+                        'deviceUpdate': data.lastupdate || '—',
                         'deviceSignal': data.signal || 'Good',
                         'deviceLat': data.lat || '—',
                         'deviceLng': data.lng || '—',
@@ -486,6 +500,18 @@
 
                     updateConnectionStatus(data.connection);
                     updateSignalBars(data.signal);
+
+                    // Handle acceptance form visibility
+                    const acceptSection = document.getElementById('acceptSection');
+                    if (data.status === 'Completed' && data.accepted === 'false') {
+                        acceptSection?.classList.remove('hidden');
+                        const form = document.getElementById('acceptForm');
+                        if (form) {
+                            form.action = `/manager/fleet/${data.fleetId}/accept`;
+                        }
+                    } else {
+                        acceptSection?.classList.add('hidden');
+                    }
 
                     // Default tab
                     document.querySelector('.tab-button[data-tab="fleet"]')?.click();
@@ -508,7 +534,7 @@
             'Completed': 'bg-green-500'
         };
         statuses.forEach(status => {
-            const el = document.querySelector(`[data-status="${status}"]`);
+            const el = document.querySelector(`[data-bukti-status="${status}"]`);
             if (el) {
                 const circle = el.querySelector('.w-6');
                 if (circle) {
@@ -542,7 +568,6 @@
             if (buktiMap[status]) {
                 const recipientEl = item.querySelector('[data-bukti="recipient"]');
                 if (recipientEl) recipientEl.textContent = buktiMap[status].recipient || '—';
-                // ❌ Jangan update description di timeline
             }
         });
     }
@@ -598,7 +623,8 @@
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
                 },
                 credentials: 'same-origin'
             });
@@ -617,6 +643,44 @@
         } finally {
             btn.disabled = false;
             btn.textContent = 'Add Fleet';
+        }
+    });
+
+    // Accept Form Handler
+    document.getElementById('acceptForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        const originalText = btn.textContent;
+
+        btn.disabled = true;
+        btn.textContent = 'Accepting...';
+
+        try {
+            const res = await fetch(e.target.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                }
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                alert('Task accepted successfully!');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                alert(data.message || 'Failed to accept task');
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Network error. Please try again.');
+            btn.disabled = false;
+            btn.textContent = originalText;
         }
     });
 
@@ -658,9 +722,9 @@
                 fleetMarker.setLatLng([latNum, lngNum]);
                 fleetMarker.setOpacity(1);
                 fleetMarker.bindPopup(
-                    `${(address && address !== '—') ? address : 'No address'}`, {
+                    `<strong>Current Location</strong><br>${(address && address !== '—') ? address : 'No address available'}`, {
                         maxWidth: 200
-                    } 
+                    }
                 ).openPopup();
             } else {
                 fleetMarker.setOpacity(0);
@@ -671,6 +735,11 @@
     }
 
     // Init
-    document.addEventListener('DOMContentLoaded', attachCardListeners);
+    document.addEventListener('DOMContentLoaded', () => {
+        attachCardListeners();
+
+        // Initialize Leaflet map when DOM is ready
+        initFleetMap();
+    });
 </script>
 @endsection

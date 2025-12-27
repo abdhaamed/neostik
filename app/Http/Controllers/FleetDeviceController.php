@@ -7,79 +7,53 @@ use App\Models\Fleet;
 use App\Models\Device;
 use App\Models\DeviceHistory;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class FleetDeviceController extends Controller
 {
-    // List all fleets with devices
     public function index()
     {
         $fleets = Fleet::with('device')->get();
         return view('admin-dashboard.manager.fleet-device', compact('fleets'));
     }
 
-    // Show fleet detail
     public function showFleet($id)
     {
         $fleet = Fleet::with('device')->findOrFail($id);
         return view('admin-dashboard.manager.fleet-detail', compact('fleet'));
     }
 
-    // Show device detail
     public function showDevice($id)
     {
         $device = Device::with(['fleet', 'histories'])->findOrFail($id);
         return view('admin-dashboard.manager.device-detail', compact('device'));
     }
 
-    // Store new fleet and device
+    // ✅ INI ADALAH METHOD YANG DIPANGGIL OLEH ROUTE: POST /fleet-device
     public function store(Request $request)
     {
         $request->validate([
             'fleet_id' => 'required|unique:fleets,fleet_id',
-            'status' => 'required|in:Unassigned,Assigned,En Route,Completed',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'weight' => 'nullable|numeric|min:0',
-
             'device_id' => 'required|unique:devices,device_id',
             'imei' => 'required|unique:devices,imei',
             'sim_card' => 'nullable|string',
-
-            // Bukti Operasional
-            'unassigned_recipient' => 'nullable|string',
-            'unassigned_description' => 'nullable|string',
-            'assigned_recipient' => 'nullable|string',
-            'assigned_description' => 'nullable|string',
-            'enroute_recipient' => 'nullable|string',
-            'enroute_description' => 'nullable|string',
-            'completed_recipient' => 'nullable|string',
-            'completed_description' => 'nullable|string',
         ]);
 
-        // Handle image upload
         $imageName = null;
         if ($request->hasFile('image')) {
             $imageName = time() . '_' . $request->file('image')->getClientOriginalName();
             $request->file('image')->storeAs('fleets', $imageName, 'public');
         }
 
-        // Create fleet
         $fleet = Fleet::create([
             'fleet_id' => $request->fleet_id,
-            'status' => $request->status,
+            'status' => 'Unassigned',
             'image' => $imageName,
             'weight' => $request->weight,
-            'unassigned_recipient' => $request->unassigned_recipient,
-            'unassigned_description' => $request->unassigned_description,
-            'assigned_recipient' => $request->assigned_recipient,
-            'assigned_description' => $request->assigned_description,
-            'enroute_recipient' => $request->enroute_recipient,
-            'enroute_description' => $request->enroute_description,
-            'completed_recipient' => $request->completed_recipient,
-            'completed_description' => $request->completed_description,
         ]);
 
-        // Create device
-        // Create device
         Device::create([
             'fleet_id' => $fleet->id,
             'device_id' => $request->device_id,
@@ -87,35 +61,41 @@ class FleetDeviceController extends Controller
             'sim_card' => $request->sim_card,
             'connection_status' => 'Disconnected',
             'signal_strength' => 'Good',
-            // Koordinat default (Jakarta)
             'latitude' => -6.2088,
             'longitude' => 106.8456,
+            'speed' => null,
+            'address' => null,
+            'last_update' => now(),
         ]);
+
         return response()->json([
             'success' => true,
             'fleet' => $fleet->load('device')
         ]);
     }
 
-    // Update fleet
     public function updateFleet(Request $request, $id)
     {
         $fleet = Fleet::findOrFail($id);
 
+        if (in_array($fleet->status, ['En Route', 'Completed'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot modify fleet that is already in progress or completed.'
+            ], 403);
+        }
+
         $request->validate([
             'fleet_id' => 'required|unique:fleets,fleet_id,' . $id,
-            'status' => 'required|in:Unassigned,Assigned,En Route,Completed',
+            'status' => 'required|in:Unassigned,Assigned',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'weight' => 'nullable|numeric|min:0',
         ]);
 
-        // Handle image upload
         if ($request->hasFile('image')) {
-            // Delete old image
             if ($fleet->image) {
                 Storage::disk('public')->delete('fleets/' . $fleet->image);
             }
-
             $imageName = time() . '_' . $request->file('image')->getClientOriginalName();
             $request->file('image')->storeAs('fleets', $imageName, 'public');
             $fleet->image = $imageName;
@@ -125,14 +105,6 @@ class FleetDeviceController extends Controller
             'fleet_id' => $request->fleet_id,
             'status' => $request->status,
             'weight' => $request->weight,
-            'unassigned_recipient' => $request->unassigned_recipient,
-            'unassigned_description' => $request->unassigned_description,
-            'assigned_recipient' => $request->assigned_recipient,
-            'assigned_description' => $request->assigned_description,
-            'enroute_recipient' => $request->enroute_recipient,
-            'enroute_description' => $request->enroute_description,
-            'completed_recipient' => $request->completed_recipient,
-            'completed_description' => $request->completed_description,
         ]);
 
         return response()->json([
@@ -141,7 +113,6 @@ class FleetDeviceController extends Controller
         ]);
     }
 
-    // Update device location and status
     public function updateDevice(Request $request, $id)
     {
         $device = Device::findOrFail($id);
@@ -149,8 +120,8 @@ class FleetDeviceController extends Controller
         $request->validate([
             'connection_status' => 'nullable|in:Connected,Disconnected,Idle',
             'signal_strength' => 'nullable|in:Weak,Fair,Good,Strong,Excellent',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
             'speed' => 'nullable|numeric|min:0',
             'address' => 'nullable|string',
         ]);
@@ -165,13 +136,9 @@ class FleetDeviceController extends Controller
             'last_update' => now(),
         ]);
 
-        return response()->json([
-            'success' => true,
-            'device' => $device
-        ]);
+        return response()->json(['success' => true, 'device' => $device]);
     }
 
-    // Add device history entry
     public function addDeviceHistory(Request $request, $deviceId)
     {
         $request->validate([
@@ -192,39 +159,63 @@ class FleetDeviceController extends Controller
             'longitude' => $request->longitude,
         ]);
 
-        return response()->json([
-            'success' => true,
-            'history' => $history
-        ]);
+        return response()->json(['success' => true, 'history' => $history]);
     }
 
-    // Get device histories for AJAX
     public function getDeviceHistories($deviceId)
     {
-        $device = Device::findOrFail($deviceId);
-        $histories = $device->histories()->take(10)->get();
-
-        return response()->json([
-            'success' => true,
-            'histories' => $histories
-        ]);
+        $histories = DeviceHistory::where('device_id', $deviceId)->latest()->take(10)->get();
+        return response()->json(['success' => true, 'histories' => $histories]);
     }
 
-    // Delete fleet and its device
     public function destroy($id)
     {
         $fleet = Fleet::findOrFail($id);
 
-        // Delete image if exists
+        if (in_array($fleet->status, ['Assigned', 'En Route'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete fleet that is currently assigned or in route.'
+            ], 403);
+        }
+
         if ($fleet->image) {
             Storage::disk('public')->delete('fleets/' . $fleet->image);
         }
 
-        $fleet->delete(); // Will cascade delete device and histories
+        $fleet->delete();
+        return response()->json(['success' => true, 'message' => 'Fleet deleted successfully']);
+    }
+
+    public function acceptCompleted(Request $request, Fleet $fleet)
+    {
+        // Validasi: hanya bisa accept fleet yang statusnya Completed
+        if ($fleet->status !== 'Completed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fleet is not in Completed status.'
+            ], 400);
+        }
+
+        // Isi bukti completed otomatis (opsional)
+        $fleet->updateBuktiOperasional([
+            'completed_recipient' => Auth::user()->name,
+            'completed_description' => 'Task accepted by admin',
+            'completed_report' => null,
+        ]);
+
+        // Tandai sebagai diterima
+        $fleet->update([
+            'accepted_by_admin' => true,
+            'accepted_at' => now(),
+            'accepted_by' => Auth::id(),
+            // Jika ingin ubah status jadi "Accepted", tambahkan:
+            // 'status' => 'Accepted'
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Fleet deleted successfully'
+            'message' => 'Task accepted successfully.'
         ]);
     }
 }
