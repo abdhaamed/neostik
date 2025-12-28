@@ -31,7 +31,6 @@ class DeviceHistory extends Model
         return $this->belongsTo(Device::class);
     }
 
-    // Helper method to get status badge color
     public function getStatusColor()
     {
         $colors = [

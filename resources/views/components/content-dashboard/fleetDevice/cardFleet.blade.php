@@ -27,7 +27,7 @@
                 <!-- Status Items -->
                 <div class="flex items-center space-x-2 relative z-10">
                     <div class="w-3 h-3 rounded-full bg-green-500 border-2 border-white"></div>
-                    <span class="text-xs text-gray-700">Completed</span>
+                    <span class="text-xs text-gray-700"></span>
                 </div>
 
                 <div class="flex items-center space-x-2 relative z-10">

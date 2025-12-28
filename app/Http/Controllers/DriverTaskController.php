@@ -46,7 +46,7 @@ class DriverTaskController extends Controller
             'report' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        Log::info('Submit evidence request', [
+        Log::info('Submit En Route evidence request', [
             'task_id' => $task->id,
             'fleet_id' => $task->fleet_id,
             'recipient' => $request->recipient,
@@ -68,10 +68,11 @@ class DriverTaskController extends Controller
             $reportPath = $request->file('report')->store('reports', 'public');
         }
 
+        // ✅ Update bukti untuk status "Assigned" → "En Route"
         if (!$fleet->updateBuktiOperasional([
-            'assigned_recipient' => $request->recipient,
-            'assigned_description' => $request->description,
-            'assigned_report' => $reportPath,
+            'enroute_recipient' => $request->recipient,
+            'enroute_description' => $request->description,
+            'enroute_report' => $reportPath,
         ])) {
             return response()->json([
                 'success' => false,
@@ -84,12 +85,11 @@ class DriverTaskController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Evidence submitted successfully.'
+            'message' => 'Evidence submitted successfully. Status changed to En Route.'
         ]);
     }
 
-    // ✅ TAMBAHKAN INI: Driver Submit Evidence for "En Route" → "Completed"
-    // app/Http/Controllers/DriverTaskController.php
+    // Driver: Submit evidence for "En Route" → move to "Completed"
     public function submitCompletedEvidence(Request $request, Task $task)
     {
         if (!$task->relationLoaded('fleet')) {
@@ -116,7 +116,7 @@ class DriverTaskController extends Controller
             'report' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        Log::info('Submit completed evidence request', [
+        Log::info('Submit Completed evidence request', [
             'task_id' => $task->id,
             'fleet_id' => $task->fleet_id,
             'recipient' => $request->recipient,
@@ -138,11 +138,11 @@ class DriverTaskController extends Controller
             $reportPath = $request->file('report')->store('reports', 'public');
         }
 
-        // ✅ Simpan bukti operasional
+        // ✅ PERBAIKAN: Gunakan prefix "completed_" bukan "enroute_"
         $buktiData = [
-            'enroute_recipient' => $request->recipient,
-            'enroute_description' => $request->description,
-            'enroute_report' => $reportPath,
+            'completed_recipient' => $request->recipient,
+            'completed_description' => $request->description,
+            'completed_report' => $reportPath,
         ];
 
         if (!$fleet->updateBuktiOperasional($buktiData)) {
@@ -152,13 +152,12 @@ class DriverTaskController extends Controller
             ], 500);
         }
 
-        // ✅ UPDATE STATUS SETELAH BUKTI TERSIMPAN
         $fleet->update(['status' => 'Completed']);
         $task->update(['status' => 'completed']);
 
         return response()->json([
             'success' => true,
-            'message' => 'Task completed successfully.'
+            'message' => 'Task completed successfully. Waiting for admin approval.'
         ]);
     }
 }

@@ -29,6 +29,46 @@
                     @else
                     <div class="grid grid-cols-2 gap-4">
                         @foreach($fleets as $fleet)
+                        @php
+                        // Ambil bukti operasional untuk mendapatkan informasi driver/recipient
+                        $buktiOperasional = $fleet->getBuktiOperasional();
+                        $currentBukti = collect($buktiOperasional)->firstWhere('status', $fleet->status);
+                        $driverName = $currentBukti['recipient'] ?? 'Not Assigned';
+
+                        // Tentukan informasi berdasarkan status
+                        $statusInfo = match($fleet->status) {
+                        'Unassigned' => [
+                        'label' => 'Status',
+                        'value' => 'Waiting Assignment',
+                        'icon' => '
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                        ],
+                        'Assigned' => [
+                        'label' => 'Driver',
+                        'value' => $driverName,
+                        'icon' => '
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />'
+                        ],
+                        'En Route' => [
+                        'label' => 'Driver',
+                        'value' => $driverName,
+                        'icon' => '
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />'
+                        ],
+                        'Completed' => [
+                        'label' => 'Delivered By',
+                        'value' => $driverName,
+                        'icon' => '
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                        ],
+                        default => [
+                        'label' => 'Status',
+                        'value' => 'Unknown',
+                        'icon' => '
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                        ]
+                        };
+                        @endphp
                         <div class="bg-white rounded-lg border border-gray-300 p-4 hover:shadow-lg transition-all duration-200 cursor-pointer fleet-card"
                             data-fleet-id="{{ $fleet->id }}"
                             data-fleetCode="{{ $fleet->fleet_id }}"
@@ -47,8 +87,9 @@
                             data-address="{{ $fleet->device?->address ?? '' }}"
                             data-lastUpdate="{{ $fleet->device?->last_update ? $fleet->device->last_update->format('d M Y, H:i') : '' }}"
                             data-bukti="{{ json_encode($fleet->getBuktiOperasional(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }}">
-                            <div class="flex items-center justify-between mb-2">
-                                <h4 class="text-gray-800 text-md">{{ $fleet->fleet_id }}</h4>
+
+                            <div class="flex items-center justify-between mb-3">
+                                <h4 class="text-gray-800 text-md font-semibold">{{ $fleet->fleet_id }}</h4>
                                 @php
                                 $statusColor = match($fleet->status) {
                                 'Completed' => 'bg-green-500',
@@ -63,30 +104,23 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-3 gap-4 mb-4">
-                                <div class="flex flex-col">
-                                    <span class="text-md font-bold text-gray-800">00:00:00</span>
-                                    <span class="text-xs text-gray-500 mt-1">—</span>
-                                </div>
-
-                                <div class="flex flex-col space-y-2 relative pl-6">
-                                    <div class="absolute left-3 top-2 bottom-2 w-0.5 bg-gray-300"></div>
-                                    @foreach(['Completed', 'En Route', 'Assigned', 'Unassigned'] as $status)
-                                    <div class="flex items-center space-x-2 relative z-10">
-                                        <div class="w-3 h-3 rounded-full {{ $status === $fleet->status ? match($status) {
-                                                'Completed' => 'bg-green-500',
-                                                'En Route' => 'bg-blue-500',
-                                                'Assigned' => 'bg-orange-500',
-                                                default => 'bg-gray-400'
-                                            } : 'bg-gray-400' }} border-2 border-white"></div>
-                                        <span class="text-xs text-gray-700">{{ $status }}</span>
+                            <!-- Info Section with Icon -->
+                            <div class="bg-gray-50 rounded-lg p-3 mb-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex-shrink-0">
+                                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            {!! $statusInfo['icon'] !!}
+                                        </svg>
                                     </div>
-                                    @endforeach
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs text-gray-500 uppercase tracking-wide">{{ $statusInfo['label'] }}</p>
+                                        <p class="text-sm font-semibold text-gray-800 truncate mt-0.5">{{ $statusInfo['value'] }}</p>
+                                    </div>
                                 </div>
-                                <div></div>
                             </div>
 
-                            <div class="bg-gray-100 rounded h-24 overflow-hidden">
+                            <!-- Fleet Image -->
+                            <div class="bg-gray-100 rounded-lg h-24 overflow-hidden">
                                 @if($fleet->image)
                                 <img src="{{ asset('storage/fleets/' . $fleet->image) }}" alt="Fleet Image" class="w-full h-full object-cover">
                                 @else

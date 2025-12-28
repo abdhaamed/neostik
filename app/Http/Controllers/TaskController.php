@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Http\Controllers;
-
 use App\Models\Task;
 use App\Models\Fleet;
 use App\Models\User;
@@ -22,12 +20,15 @@ class TaskController extends Controller
             'vehicle_plate' => 'nullable|string',
             'operating_cost' => 'nullable|numeric|min:0',
         ]);
-
+        
         $fleet = Fleet::findOrFail($request->fleet_id);
         if ($fleet->status !== 'Unassigned') {
-            return response()->json(['error' => 'Fleet is not available for assignment'], 400);
+            return response()->json([
+                'success' => false,
+                'message' => 'Fleet is not available for assignment'
+            ], 400);
         }
-
+        
         $task = Task::create([
             'driver_id' => $request->driver_id,
             'fleet_id' => $request->fleet_id,
@@ -40,7 +41,7 @@ class TaskController extends Controller
             'operating_cost' => $request->operating_cost,
             'status' => 'assigned',
         ]);
-
+        
         // ✅ Isi bukti Unassigned secara otomatis
         $adminName = Auth::user()->name;
         $driver = User::find($request->driver_id);
@@ -49,12 +50,14 @@ class TaskController extends Controller
             'unassigned_description' => "Task assigned to {$driver->name}",
             'unassigned_report' => null,
         ]);
-
+        
         $fleet->update(['status' => 'Assigned']);
-
+        
+        // ✅ PERBAIKAN: Gunakan key "success" bukan "message"
         return response()->json([
+            'success' => true,
             'message' => 'Task assigned successfully',
             'task' => $task
-        ], 201);
+        ], 200);
     }
 }

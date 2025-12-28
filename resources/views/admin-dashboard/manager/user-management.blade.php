@@ -46,24 +46,7 @@
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-2xl font-semibold text-gray-800">Status Board</h2>
                     <div class="flex items-center gap-3">
-                        <!-- Search Input -->
-                        <div class="relative">
-                            <input
-                                type="text"
-                                id="searchDriver"
-                                placeholder="Search Driver"
-                                class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-64">
-                            <svg class="w-5 h-5 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                        </div>
-                        <!-- Filters Button -->
-                        <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
-                            </svg>
-                            Filters
-                        </button>
+
                         <!-- Export Button -->
                         <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,6 +54,7 @@
                             </svg>
                             Export
                         </button>
+
                         <!-- Add New Driver Button -->
                         <button id="btnAddDriver" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -336,53 +320,61 @@
 
     <script>
         // Handle form submit
-        document.getElementById('taskFormDetail').addEventListener('submit', async function(e) {
-            e.preventDefault();
+        // Handle form submit
+document.getElementById('taskFormDetail').addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-            const formData = new FormData(this);
-            const driverId = document.getElementById('selectedDriverId').value;
-            const fleetId = document.getElementById('fleetSelect').value;
+    const formData = new FormData(this);
+    const driverId = document.getElementById('selectedDriverId').value;
+    const fleetId = document.getElementById('fleetSelect').value;
 
-            if (!driverId || !fleetId) {
-                alert('Please select a driver and a fleet.');
-                return;
-            }
+    if (!driverId || !fleetId) {
+        alert('Please select a driver and a fleet.');
+        return;
+    }
 
-            // Tambahkan ke FormData (jika belum)
-            formData.set('driver_id', driverId);
-            formData.set('fleet_id', fleetId);
+    // Tambahkan ke FormData (jika belum)
+    formData.set('driver_id', driverId);
+    formData.set('fleet_id', fleetId);
 
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Assigning...';
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `
+        <svg class="animate-spin h-5 w-5 inline-block mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Assigning...
+    `;
 
-            try {
-                const response = await fetch('{{ route("manager.tasks.store") }}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    },
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    alert(result.message);
-                    resetTaskForm(); // Reset form & unselect driver
-                } else {
-                    alert('Error: ' + (result.message || 'Failed to assign task'));
-                }
-            } catch (err) {
-                console.error('Error:', err);
-                alert('Network error. Check console.');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-            }
+    try {
+        const response = await fetch('{{ route("manager.tasks.store") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            },
+            body: formData
         });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // ✅ LANGSUNG RELOAD TANPA ALERT
+            window.location.reload();
+        } else {
+            alert('Error: ' + (result.message || 'Failed to assign task'));
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    } catch (err) {
+        console.error('Error:', err);
+        alert('Network error. Check console.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+    }
+});
 
         function attachDriverCardListeners() {
             document.querySelectorAll('.driver-card').forEach(card => {
@@ -508,61 +500,76 @@
         }
 
         function saveDriver(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData);
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
 
-            const url = currentDriverId ?
-                `/manager/users/${currentDriverId}` :
-                '/manager/users';
+    const url = currentDriverId ?
+        `/manager/users/${currentDriverId}` :
+        '/manager/users';
 
-            const method = currentDriverId ? 'PUT' : 'POST';
+    const method = currentDriverId ? 'PUT' : 'POST';
 
-            // Show loading state
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Saving...';
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `
+        <svg class="animate-spin h-5 w-5 inline-block mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Saving...
+    `;
 
-            fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(res => {
-                    if (!res.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return res.json();
-                })
-                .then(response => {
-                    if (response.success) {
-                        // Show success message
-                        let message = response.message;
+    // ✅ PERBAIKAN: Kirim sebagai FormData untuk PUT juga
+    if (currentDriverId) {
+        formData.append('_method', 'PUT');
+    }
 
-                        // Show credentials for new driver
-                        if (response.credentials) {
-                            message += `\n\n📧 Login Credentials:\nEmail: ${response.credentials.email}\nPassword: ${response.credentials.password}\n\n⚠️ Please save these credentials!`;
-                        }
-
-                        alert(message);
-                        closeDriverModal();
-                        location.reload();
-                    } else {
-                        throw new Error(response.message || 'Save failed');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error saving driver: ' + error.message);
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = originalText;
-                });
-        }
+    fetch(url, {
+            method: 'POST', // ✅ Selalu POST, tapi dengan _method untuk PUT
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+                // ✅ HAPUS Content-Type, biar browser yang set otomatis untuk FormData
+            },
+            body: formData // ✅ Kirim FormData langsung, bukan JSON
+        })
+        .then(res => {
+            if (!res.ok) {
+                return res.json().then(err => Promise.reject(err));
+            }
+            return res.json();
+        })
+        .then(response => {
+            if (response.success) {
+                // ✅ LANGSUNG RELOAD TANPA ALERT
+                closeDriverModal();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 300);
+            } else {
+                throw new Error(response.message || 'Save failed');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            
+            // Tampilkan pesan error yang lebih detail
+            let errorMessage = 'Error saving driver';
+            if (error.errors) {
+                // Laravel validation errors
+                errorMessage += ':\n' + Object.values(error.errors).flat().join('\n');
+            } else if (error.message) {
+                errorMessage += ': ' + error.message;
+            }
+            
+            alert(errorMessage);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        });
+}
 
         function editDriver(driverId) {
             openDriverModal(driverId);

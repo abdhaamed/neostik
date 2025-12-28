@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\FleetDeviceController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\DriverTaskController;
+use App\Http\Controllers\ReportController; // ✅ Tambahkan ini
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 | AUTHENTICATION ROUTES
 |--------------------------------------------------------------------------
 */
+
 Route::get('/login', [LoginController::class, 'choice'])->name('login');
 
 Route::get('/login/admin', [LoginController::class, 'adminForm'])->name('login.admin');
@@ -126,9 +128,13 @@ Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(f
             return view('admin-dashboard.report.route-history');
         })->name('report.route-history');
 
-        Route::get('/operational-report', function () {
-            return view('admin-dashboard.report.operational-report');
-        })->name('report.operational-report');
+        // ✅ PERBAIKAN: Arahkan ke ReportController
+        Route::get('/operational-report', [ReportController::class, 'operationalReport'])
+            ->name('report.operational-report');
+
+        // Di dalam route report
+        Route::get('/route-history', [ReportController::class, 'routeHistory'])
+            ->name('report.route-history');
     });
 
     /*
@@ -163,11 +169,11 @@ Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(f
 Route::prefix('driver')->middleware('auth')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\DriverController::class, 'dashboard'])->name('driver.dashboard');
     Route::get('/shipments', [App\Http\Controllers\DriverController::class, 'shipments'])->name('driver.shipments');
-    
+
     Route::get('/tasks/{task}', [DriverTaskController::class, 'show'])->name('driver.tasks.show');
     Route::post('/tasks/{task}/enroute', [DriverTaskController::class, 'submitEnRouteEvidence'])->name('driver.tasks.enroute');
     Route::post('/tasks/{task}/complete', [DriverTaskController::class, 'submitCompletedEvidence'])->name('driver.tasks.complete');
-    
+
     Route::get('/profile', [App\Http\Controllers\DriverController::class, 'profile'])->name('driver.profile');
     Route::put('/profile/update', [App\Http\Controllers\DriverController::class, 'updateProfile'])->name('driver.profile.update');
     Route::put('/profile/password', [App\Http\Controllers\DriverController::class, 'updatePassword'])->name('driver.profile.password');
