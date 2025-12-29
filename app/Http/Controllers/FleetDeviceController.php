@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Fleet;
 use App\Models\Device;
 use App\Models\DeviceHistory;
+use App\Models\Task;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,19 +15,42 @@ class FleetDeviceController extends Controller
     public function index()
     {
         $fleets = Fleet::with('device')->get();
-        return view('admin-dashboard.manager.fleet-device', compact('fleets'));
+        $fleetCounts = $this->getFleetCounts(); // ✅ DITAMBAHKAN
+        return view('admin-dashboard.manager.fleet-device', compact('fleets', 'fleetCounts'));
     }
+
+    private function getFleetCounts()
+    {
+        $counts = Fleet::selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
+        $statuses = ['Unassigned', 'Assigned', 'En Route', 'Completed'];
+        $fleetCounts = array_fill_keys($statuses, 0);
+
+        foreach ($counts as $status => $count) {
+            if (in_array($status, $statuses)) {
+                $fleetCounts[$status] = $count;
+            }
+        }
+
+        return $fleetCounts;
+    }
+
 
     public function showFleet($id)
     {
         $fleet = Fleet::with('device')->findOrFail($id);
-        return view('admin-dashboard.manager.fleet-detail', compact('fleet'));
+        $fleetCounts = $this->getFleetCounts(); // ✅ DITAMBAHKAN
+        return view('admin-dashboard.manager.fleet-detail', compact('fleet', 'fleetCounts'));
     }
 
     public function showDevice($id)
     {
         $device = Device::with(['fleet', 'histories'])->findOrFail($id);
-        return view('admin-dashboard.manager.device-detail', compact('device'));
+        $fleetCounts = $this->getFleetCounts(); // ✅ DITAMBAHKAN
+        return view('admin-dashboard.manager.device-detail', compact('device', 'fleetCounts'));
     }
 
     // ✅ INI ADALAH METHOD YANG DIPANGGIL OLEH ROUTE: POST /fleet-device
@@ -189,7 +213,6 @@ class FleetDeviceController extends Controller
 
     public function acceptCompleted(Request $request, Fleet $fleet)
     {
-        // Validasi: hanya bisa accept fleet yang statusnya Completed
         if ($fleet->status !== 'Completed') {
             return response()->json([
                 'success' => false,
@@ -197,25 +220,45 @@ class FleetDeviceController extends Controller
             ], 400);
         }
 
-        // Isi bukti completed otomatis (opsional)
         $fleet->updateBuktiOperasional([
             'completed_recipient' => Auth::user()->name,
             'completed_description' => 'Task accepted by admin',
             'completed_report' => null,
         ]);
 
-        // Tandai sebagai diterima
         $fleet->update([
             'accepted_by_admin' => true,
             'accepted_at' => now(),
             'accepted_by' => Auth::id(),
-            // Jika ingin ubah status jadi "Accepted", tambahkan:
-            // 'status' => 'Accepted'
         ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Task accepted successfully.'
+        ]);
+    }
+
+    public function apiGetFleets()
+    {
+        $fleets = Fleet::with('device')->orderBy('fleet_id')->get();
+        return response()->json([
+            'success' => true,
+            'fleets' => $fleets
+        ]);
+    }
+
+    public function apiGetFleetTask($id)
+    {
+        $fleet = Fleet::findOrFail($id);
+        $task = Task::with('driver')
+            ->where('fleet_id', $fleet->id)
+            ->whereIn('status', ['assigned', 'en_route', 'completed'])
+            ->latest()
+            ->first();
+
+        return response()->json([
+            'success' => true,
+            'task' => $task
         ]);
     }
 }

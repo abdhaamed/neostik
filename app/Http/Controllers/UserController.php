@@ -16,13 +16,33 @@ class UserController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // ✅ TAMBAHKAN INI: Ambil fleet yang Unassigned untuk task assignment
         $fleets = Fleet::where('status', 'Unassigned')
             ->with('device')
             ->orderBy('fleet_id', 'asc')
             ->get();
 
-        return view('admin-dashboard.manager.user-management', compact('drivers', 'fleets'));
+        $fleetCounts = $this->getFleetCounts(); // ✅ DITAMBAHKAN
+
+        return view('admin-dashboard.manager.user-management', compact('drivers', 'fleets', 'fleetCounts'));
+    }
+
+    private function getFleetCounts()
+    {
+        $counts = Fleet::selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
+        $statuses = ['Unassigned', 'Assigned', 'En Route', 'Completed'];
+        $fleetCounts = array_fill_keys($statuses, 0);
+        
+        foreach ($counts as $status => $count) {
+            if (in_array($status, $statuses)) {
+                $fleetCounts[$status] = $count;
+            }
+        }
+        
+        return $fleetCounts;
     }
 
     public function store(Request $request)
@@ -132,4 +152,5 @@ class UserController extends Controller
             'data' => $drivers
         ]);
     }
+
 }

@@ -6,7 +6,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\FleetDeviceController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\DriverTaskController;
-use App\Http\Controllers\ReportController; // ✅ Tambahkan ini
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\AdminController; // ✅ Hanya butuh ini
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -14,7 +15,6 @@ use Illuminate\Support\Facades\Auth;
 | AUTHENTICATION ROUTES
 |--------------------------------------------------------------------------
 */
-
 Route::get('/login', [LoginController::class, 'choice'])->name('login');
 
 Route::get('/login/admin', [LoginController::class, 'adminForm'])->name('login.admin');
@@ -42,17 +42,27 @@ Route::get('/', function () {
 
 /*
 |--------------------------------------------------------------------------
-| ADMIN ROUTES
+| ADMIN ROUTES (HANYA SATU BLOK!)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin-dashboard.dashboard');
-    })->name('dashboard');
 
-    Route::get('/profile', [App\Http\Controllers\AdminProfileController::class, 'show'])->name('admin.profile');
-    Route::put('/profile/update', [App\Http\Controllers\AdminProfileController::class, 'update'])->name('admin.profile.update');
-    Route::put('/profile/password', [App\Http\Controllers\AdminProfileController::class, 'updatePassword'])->name('admin.profile.password');
+Route::middleware('auth')->group(function () {
+    Route::get('/api/fleets', [FleetDeviceController::class, 'apiGetFleets']);
+    Route::get('/api/fleets/{fleet}/task', [FleetDeviceController::class, 'apiGetFleetTask']);
+});
+
+Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(function () {
+    // DASHBOARD
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])
+        ->name('dashboard');
+
+    // PROFILE
+    Route::get('/profile', [App\Http\Controllers\AdminProfileController::class, 'show'])
+        ->name('admin.profile');
+    Route::put('/profile/update', [App\Http\Controllers\AdminProfileController::class, 'update'])
+        ->name('admin.profile.update');
+    Route::put('/profile/password', [App\Http\Controllers\AdminProfileController::class, 'updatePassword'])
+        ->name('admin.profile.password');
 
     /*
     |--------------------------------------------------------------------------
@@ -60,45 +70,24 @@ Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(f
     |--------------------------------------------------------------------------
     */
     Route::prefix('manager')->group(function () {
-
         Route::get('/fleet-device', [FleetDeviceController::class, 'index'])
             ->name('manager.fleet-device');
 
         Route::post('/fleet-device', [FleetDeviceController::class, 'store'])
             ->name('manager.fleet-device.store');
 
-        /*
-        |--------------------------------------------------------------------------
-        | TASK ASSIGNMENT
-        |--------------------------------------------------------------------------
-        */
         Route::post('/tasks', [TaskController::class, 'assign'])
             ->name('manager.tasks.store');
 
-        /*
-        |--------------------------------------------------------------------------
-        | FLEET ACCEPTANCE (BARU)
-        |--------------------------------------------------------------------------
-        */
         Route::post('/fleet/{fleet}/accept', [FleetDeviceController::class, 'acceptCompleted'])
             ->name('manager.fleet.accept');
 
-        /*
-        |--------------------------------------------------------------------------
-        | DEVICE HISTORY
-        |--------------------------------------------------------------------------
-        */
         Route::post('/device/{id}/history', [FleetDeviceController::class, 'addDeviceHistory'])
             ->name('manager.device.history.store');
 
         Route::get('/device/{id}/histories', [FleetDeviceController::class, 'getDeviceHistories'])
             ->name('manager.device.histories');
 
-        /*
-        |--------------------------------------------------------------------------
-        | USER MANAGEMENT
-        |--------------------------------------------------------------------------
-        */
         Route::get('/user-management', [UserController::class, 'index'])
             ->name('manager.user-management');
 
@@ -124,17 +113,11 @@ Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(f
     |--------------------------------------------------------------------------
     */
     Route::prefix('report')->group(function () {
-        Route::get('/route-history', function () {
-            return view('admin-dashboard.report.route-history');
-        })->name('report.route-history');
-
-        // ✅ PERBAIKAN: Arahkan ke ReportController
-        Route::get('/operational-report', [ReportController::class, 'operationalReport'])
-            ->name('report.operational-report');
-
-        // Di dalam route report
         Route::get('/route-history', [ReportController::class, 'routeHistory'])
             ->name('report.route-history');
+
+        Route::get('/operational-report', [ReportController::class, 'operationalReport'])
+            ->name('report.operational-report');
     });
 
     /*
@@ -143,22 +126,18 @@ Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(f
     |--------------------------------------------------------------------------
     */
     Route::prefix('command')->group(function () {
-        Route::get('/message', function () {
-            return view('admin-dashboard.command.message');
-        })->name('command.message');
+        Route::get('/message', [AdminController::class, 'message'])
+            ->name('command.message');
 
-        Route::get('/broadcast', function () {
-            return view('admin-dashboard.command.broadcast');
-        })->name('command.broadcast');
+        Route::get('/broadcast', [AdminController::class, 'broadcast'])
+            ->name('command.broadcast');
     });
 
-    Route::get('/audit-logs', function () {
-        return view('admin-dashboard.audit-logs');
-    })->name('audit-logs');
+    Route::get('/audit-logs', [AdminController::class, 'auditLogs'])
+        ->name('audit-logs');
 
-    Route::get('/alert', function () {
-        return view('admin-dashboard.alert');
-    })->name('alert');
+    Route::get('/alert', [AdminController::class, 'alert'])
+        ->name('alert');
 });
 
 /*
@@ -167,15 +146,24 @@ Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(f
 |--------------------------------------------------------------------------
 */
 Route::prefix('driver')->middleware('auth')->group(function () {
-    Route::get('/dashboard', [App\Http\Controllers\DriverController::class, 'dashboard'])->name('driver.dashboard');
-    Route::get('/shipments', [App\Http\Controllers\DriverController::class, 'shipments'])->name('driver.shipments');
+    Route::get('/dashboard', [App\Http\Controllers\DriverController::class, 'dashboard'])
+        ->name('driver.dashboard');
+    Route::get('/shipments', [App\Http\Controllers\DriverController::class, 'shipments'])
+        ->name('driver.shipments');
 
-    Route::get('/tasks/{task}', [DriverTaskController::class, 'show'])->name('driver.tasks.show');
-    Route::post('/tasks/{task}/enroute', [DriverTaskController::class, 'submitEnRouteEvidence'])->name('driver.tasks.enroute');
-    Route::post('/tasks/{task}/complete', [DriverTaskController::class, 'submitCompletedEvidence'])->name('driver.tasks.complete');
+    Route::get('/tasks/{task}', [DriverTaskController::class, 'show'])
+        ->name('driver.tasks.show');
+    Route::post('/tasks/{task}/enroute', [DriverTaskController::class, 'submitEnRouteEvidence'])
+        ->name('driver.tasks.enroute');
+    Route::post('/tasks/{task}/complete', [DriverTaskController::class, 'submitCompletedEvidence'])
+        ->name('driver.tasks.complete');
 
-    Route::get('/profile', [App\Http\Controllers\DriverController::class, 'profile'])->name('driver.profile');
-    Route::put('/profile/update', [App\Http\Controllers\DriverController::class, 'updateProfile'])->name('driver.profile.update');
-    Route::put('/profile/password', [App\Http\Controllers\DriverController::class, 'updatePassword'])->name('driver.profile.password');
-    Route::put('/profile/vehicle', [App\Http\Controllers\DriverController::class, 'updateVehicle'])->name('driver.profile.vehicle');
+    Route::get('/profile', [App\Http\Controllers\DriverController::class, 'profile'])
+        ->name('driver.profile');
+    Route::put('/profile/update', [App\Http\Controllers\DriverController::class, 'updateProfile'])
+        ->name('driver.profile.update');
+    Route::put('/profile/password', [App\Http\Controllers\DriverController::class, 'updatePassword'])
+        ->name('driver.profile.password');
+    Route::put('/profile/vehicle', [App\Http\Controllers\DriverController::class, 'updateVehicle'])
+        ->name('driver.profile.vehicle');
 });

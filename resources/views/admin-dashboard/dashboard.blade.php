@@ -7,6 +7,7 @@
     <title>@yield('title', 'Dashboard')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
 <body class="bg-gray-50">
@@ -38,55 +39,18 @@
                 <aside class="w-64 bg-white border-l border-gray-200 overflow-y-auto">
                     <!-- Fleets Section -->
                     <div class="p-4 border-b border-gray-200">
-                        <h3 class="font-bold text-gray-800 mb-3">Fleets</h3>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="px-3 py-1 bg-gray-100 rounded-full text-sm hover:bg-blue-100 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 transition duration-300">
-                                Small Box
-                            </button>
-                            <button class="px-3 py-1 bg-gray-100 rounded-full text-sm hover:bg-blue-100 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 transition duration-300">
-                                Curtain Side
-                            </button>
-                            <button class="px-3 py-1 bg-gray-100 rounded-full text-sm hover:bg-blue-100 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 transition duration-300">
-                                Box Trailer
-                            </button>
-                            <button class="px-3 py-1 bg-gray-100 rounded-full text-sm hover:bg-blue-100 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 transition duration-300">
-                                Pickup
-                            </button>
-                            <button class="px-3 py-1 bg-gray-100 rounded-full text-sm hover:bg-blue-100 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 transition duration-300">
-                                Middle Box
-                            </button>
-                            <button class="px-3 py-1 bg-gray-100 rounded-full text-sm hover:bg-blue-100 hover:text-blue-600 focus:ring-2 focus:ring-blue-500 transition duration-300">
-                                Container Box
-                            </button>
-                        </div>
                         <div class="mt-3">
-                            <input type="text" placeholder="Search" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300">
+                            <input type="text" id="searchFleet" placeholder="Search fleet..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300">
                         </div>
                     </div>
 
                     <!-- Vehicle List -->
-                    <div class="divide-y divide-gray-200">
-
-                        <!-- Vehicle Item 1 -->
-                        <div onclick="handleVehicleClick('B 7832 POM', 'Carrying Chemical', 'Olivia Rodrigo', -6.2088, 106.8456)" class="p-4 hover:bg-gray-50 cursor-pointer transition-colors">
-                            <div class="flex items-start space-x-3">
-                                <!-- Truck Icon -->
-                                <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-500 rounded flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M18 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-9H17V12h4.46L19.5 9.5zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM20 8l3 4v5h-2c0 1.66-1.34 3-3 3s-3-1.34-3-3H9c0 1.66-1.34 3-3 3s-3-1.34-3-3H1V6c0-1.11.89-2 2-2h14v4h3zM3 6v9h.76c.55-.61 1.35-1 2.24-1s1.69.39 2.24 1H15V6H3z" />
-                                    </svg>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center justify-between mb-1">
-                                        <h4 class="font-bold text-gray-800 truncate">B 7832 POM</h4>
-                                        <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full flex-shrink-0">Active</span>
-                                    </div>
-                                    <p class="text-xs text-gray-500 truncate">Carrying Chemical</p>
-                                    <p class="text-xs text-gray-400 mt-1">Driver: Olivia Rodrigo</p>
-                                </div>
-                            </div>
+                    <div id="fleetList" class="divide-y divide-gray-200">
+                        <!-- Loading State -->
+                        <div class="p-4 text-center text-gray-500">
+                            <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                            <p class="text-sm">Loading fleets...</p>
                         </div>
-
                     </div>
                 </aside>
 
@@ -101,8 +65,8 @@
                                 </svg>
                             </div>
                             <div>
-                                <h2 id="detailPlateNumber" class="text-lg font-bold">B 7832 POM</h2>
-                                <p id="detailCargo" class="text-sm opacity-90">Carry Chemicals</p>
+                                <h2 id="detailFleetId" class="text-lg font-bold">-</h2>
+                                <p id="detailStatus" class="text-sm opacity-90">-</p>
                             </div>
                         </div>
                         <button onclick="closeFleetDetail()" class="text-white hover:bg-orange-600 p-2 rounded">
@@ -112,8 +76,8 @@
                         </button>
                     </div>
 
-                    <!-- Driver Info -->
-                    <div class="p-4 border-b border-gray-200">
+                    <!-- Driver/Task Info -->
+                    <div id="driverInfo" class="p-4 border-b border-gray-200 hidden">
                         <div class="flex items-center space-x-3">
                             <div class="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
                                 <svg class="w-6 h-6 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
@@ -121,8 +85,8 @@
                                 </svg>
                             </div>
                             <div>
-                                <p id="detailDriverName" class="font-bold text-gray-800">Olivia Rodrigo</p>
-                                <p class="text-xs text-gray-500">812897NWN5318891</p>
+                                <p id="detailDriverName" class="font-bold text-gray-800">-</p>
+                                <p id="detailDriverId" class="text-xs text-gray-500">-</p>
                             </div>
                         </div>
                     </div>
@@ -132,117 +96,139 @@
                         <button onclick="switchTab('overview')" id="tabOverview" class="flex-1 px-4 py-3 text-sm font-medium text-white bg-blue-500 border-b-2 border-blue-500">
                             Overview
                         </button>
-                        <button onclick="switchTab('playback')" id="tabPlayback" class="flex-1 px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50">
-                            Playback
+                        <button onclick="switchTab('history')" id="tabHistory" class="flex-1 px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50">
+                            History
                         </button>
                     </div>
 
                     <!-- Overview Content -->
                     <div id="overviewContent" class="p-4">
-                        <div class="mb-4 flex items-center justify-between">
-                            <h3 class="font-bold text-gray-800">Object Information</h3>
-                            <button class="px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 flex items-center space-x-1">
-                                <span>Refresh</span>
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                            </button>
+                        <!-- Fleet Information -->
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-800 mb-3">Fleet Information</h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Fleet ID:</span>
+                                    <span id="infoFleetId" class="font-medium text-gray-800">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Status:</span>
+                                    <span id="infoStatus" class="font-medium">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Weight:</span>
+                                    <span id="infoWeight" class="font-medium text-gray-800">-</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Info Cards Grid -->
-                        <div class="grid grid-cols-2 gap-3 mb-4">
-                            <!-- Speed -->
-                            <div class="border border-gray-300 rounded-lg p-3">
-                                <div class="flex items-center space-x-2 mb-1">
-                                    <i class="fas fa-tachometer-alt text-blue-500 w-5 h-5"></i>
-                                    <span class="text-xs font-semibold text-gray-600">Speed</span>
+                        <!-- Device Information -->
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-800 mb-3">Device Information</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <!-- Connection Status -->
+                                <div class="border border-gray-300 rounded-lg p-3">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <i class="fas fa-plug text-blue-500"></i>
+                                        <span class="text-xs font-semibold text-gray-600">Connection</span>
+                                    </div>
+                                    <p id="deviceConnection" class="text-sm font-bold text-gray-800">-</p>
                                 </div>
-                                <p class="text-lg font-bold text-gray-800">22 km/h</p>
-                            </div>
 
-                            <!-- Fuel -->
-                            <div class="border border-gray-300 rounded-lg p-3">
-                                <div class="flex items-center space-x-2 mb-1">
-                                    <i class="fas fa-gas-pump text-green-500 w-5 h-5"></i>
-                                    <span class="text-xs font-semibold text-gray-600">Fuel</span>
+                                <!-- Signal Strength -->
+                                <div class="border border-gray-300 rounded-lg p-3">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <i class="fas fa-signal text-green-500"></i>
+                                        <span class="text-xs font-semibold text-gray-600">Signal</span>
+                                    </div>
+                                    <p id="deviceSignal" class="text-sm font-bold text-gray-800">-</p>
                                 </div>
-                                <p class="text-lg font-bold text-gray-800">50 L</p>
-                            </div>
 
-                            <!-- Power -->
-                            <div class="border border-gray-300 rounded-lg p-3">
-                                <div class="flex items-center space-x-2 mb-1">
-                                    <i class="fas fa-bolt text-yellow-500 w-5 h-5"></i>
-                                    <span class="text-xs font-semibold text-gray-600">Power</span>
+                                <!-- Speed -->
+                                <div class="border border-gray-300 rounded-lg p-3">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <i class="fas fa-tachometer-alt text-purple-500"></i>
+                                        <span class="text-xs font-semibold text-gray-600">Speed</span>
+                                    </div>
+                                    <p id="deviceSpeed" class="text-sm font-bold text-gray-800">-</p>
                                 </div>
-                                <p class="text-lg font-bold text-gray-800">4V</p>
-                            </div>
 
-                            <!-- Temperature -->
-                            <div class="border border-gray-300 rounded-lg p-3">
-                                <div class="flex items-center space-x-2 mb-1">
-                                    <i class="fas fa-temperature-high text-red-500 w-5 h-5"></i>
-                                    <span class="text-xs font-semibold text-gray-600">Temperature</span>
+                                <!-- Last Update -->
+                                <div class="border border-gray-300 rounded-lg p-3">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <i class="fas fa-clock text-orange-500"></i>
+                                        <span class="text-xs font-semibold text-gray-600">Updated</span>
+                                    </div>
+                                    <p id="deviceLastUpdate" class="text-xs font-bold text-gray-800">-</p>
                                 </div>
-                                <p class="text-lg font-bold text-gray-800">84 Celsius</p>
                             </div>
                         </div>
-                        <!-- Logs Section -->
-                        <div class="mt-6">
-                            <div class="flex items-center justify-between mb-3">
-                                <h3 class="font-bold text-gray-800">Logs</h3>
-                                <button class="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1">
-                                    <span>Filters</span>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                                    </svg>
-                                </button>
-                            </div>
 
-                            <!-- Logs Table -->
-                            <div class="border border-gray-200 rounded-lg overflow-hidden">
-                                <table class="w-full text-xs">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-3 py-2 text-left font-semibold text-gray-600">Last Update</th>
-                                            <th class="px-3 py-2 text-left font-semibold text-gray-600">Address</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-200">
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-3 py-2 text-gray-700">12-11-2025 10:20</td>
-                                            <td class="px-3 py-2 text-gray-700">Jalan Gendog Panjang, Jakarta Utara</td>
-                                        </tr>
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-3 py-2 text-gray-700">12-11-2025 10:30</td>
-                                            <td class="px-3 py-2 text-gray-700">Jalan Pemuda, Jakarta Utara</td>
-                                        </tr>
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-3 py-2 text-gray-700">12-11-2025 10:40</td>
-                                            <td class="px-3 py-2 text-gray-700">Jalan Pahlawan 1, Jakarta Utara</td>
-                                        </tr>
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-3 py-2 text-gray-700">12-11-2025 10:50</td>
-                                            <td class="px-3 py-2 text-gray-700">Jalan Pahlawan 2, Jakarta Utara</td>
-                                        </tr>
-                                        <tr class="hover:bg-gray-50">
-                                            <td class="px-3 py-2 text-gray-700">12-11-2025 11:00</td>
-                                            <td class="px-3 py-2 text-gray-700">Jalan Pahlawan 3, Jakarta Utara</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                        <!-- Location -->
+                        <div class="mb-4">
+                            <h3 class="font-bold text-gray-800 mb-2">Current Location</h3>
+                            <div class="border border-gray-200 rounded-lg p-3">
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-map-marker-alt text-red-500 mt-1"></i>
+                                    <div class="flex-1">
+                                        <p id="deviceAddress" class="text-sm text-gray-700">-</p>
+                                        <p id="deviceCoordinates" class="text-xs text-gray-500 mt-1">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Task Information (if assigned) -->
+                        <div id="taskInfo" class="mb-4 hidden">
+                            <h3 class="font-bold text-gray-800 mb-3">Task Information</h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Task Number:</span>
+                                    <span id="taskNumber" class="font-medium text-gray-800">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Origin:</span>
+                                    <span id="taskOrigin" class="font-medium text-gray-800">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Destination:</span>
+                                    <span id="taskDestination" class="font-medium text-gray-800">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Cargo Type:</span>
+                                    <span id="taskCargoType" class="font-medium text-gray-800">-</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Playback Content (Hidden by default) -->
-                    <div id="playbackContent" class="p-4 hidden">
-                        <div class="text-center py-12 text-gray-400">
-                            <svg class="w-16 h-16 mx-auto mb-4" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M8 5v14l11-7z" />
-                            </svg>
-                            <p class="text-lg font-medium">Playback Feature</p>
-                            <p class="text-sm mt-2">Track history and route playback will be displayed here</p>
+                    <!-- History Content (Hidden by default) -->
+                    <div id="historyContent" class="p-4 hidden">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-bold text-gray-800">Device History</h3>
+                            <button onclick="loadDeviceHistory()" class="text-xs text-blue-500 hover:text-blue-700">
+                                <i class="fas fa-sync-alt mr-1"></i>Refresh
+                            </button>
+                        </div>
+
+                        <!-- History Table -->
+                        <div id="historyList" class="border border-gray-200 rounded-lg overflow-hidden">
+                            <table class="w-full text-xs">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-3 py-2 text-left font-semibold text-gray-600">Time</th>
+                                        <th class="px-3 py-2 text-left font-semibold text-gray-600">Event</th>
+                                        <th class="px-3 py-2 text-left font-semibold text-gray-600">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTableBody" class="divide-y divide-gray-200">
+                                    <tr>
+                                        <td colspan="3" class="px-3 py-4 text-center text-gray-500">
+                                            <i class="fas fa-spinner fa-spin"></i> Loading...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -254,80 +240,276 @@
     </div>
 
     <script>
-        // Fleet detail functions - Updated to work with tabs
-        function showFleetDetail(plateNumber, cargo, driverName, latitude = null, longitude = null) {
-            const detailPanel = document.getElementById('fleetDetail');
-            const detailOverlay = document.getElementById('detailOverlay');
+        let currentFleetData = null;
 
-            // Update content
-            document.getElementById('detailPlateNumber').textContent = plateNumber;
-            document.getElementById('detailCargo').textContent = cargo;
-            document.getElementById('detailDriverName').textContent = driverName;
+        // Load fleets on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFleets();
 
-            // Show panel with slide animation
-            detailPanel.classList.remove('translate-x-full');
-            detailOverlay.classList.remove('hidden');
+            // Search functionality
+            document.getElementById('searchFleet').addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const fleetItems = document.querySelectorAll('.fleet-item');
+                
+                fleetItems.forEach(item => {
+                    const fleetId = item.dataset.fleetId.toLowerCase();
+                    const status = item.dataset.status.toLowerCase();
+                    if (fleetId.includes(searchTerm) || status.includes(searchTerm)) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
 
-            // Prevent body scroll when panel is open
-            document.body.style.overflow = 'hidden';
+        // Load all fleets from backend
+        function loadFleets() {
+            fetch('/api/fleets')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderFleetList(data.fleets);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading fleets:', error);
+                    document.getElementById('fleetList').innerHTML = `
+                        <div class="p-4 text-center text-red-500">
+                            <i class="fas fa-exclamation-triangle text-2xl mb-2"></i>
+                            <p class="text-sm">Failed to load fleets</p>
+                        </div>
+                    `;
+                });
+        }
 
-            // TODO: Navigate to coordinates on map
-            if (latitude && longitude) {
-                console.log(`Showing vehicle at: ${latitude}, ${longitude}`);
-                // navigateToCoordinates(latitude, longitude);
+        // Render fleet list
+        function renderFleetList(fleets) {
+            const fleetList = document.getElementById('fleetList');
+            
+            if (fleets.length === 0) {
+                fleetList.innerHTML = `
+                    <div class="p-4 text-center text-gray-500">
+                        <i class="fas fa-truck text-3xl mb-2"></i>
+                        <p class="text-sm">No fleets available</p>
+                    </div>
+                `;
+                return;
             }
+
+            fleetList.innerHTML = fleets.map(fleet => {
+                const statusColors = {
+                    'Unassigned': 'bg-gray-100 text-gray-700',
+                    'Assigned': 'bg-blue-100 text-blue-700',
+                    'En Route': 'bg-green-100 text-green-700',
+                    'Completed': 'bg-purple-100 text-purple-700'
+                };
+
+                const statusColor = statusColors[fleet.status] || 'bg-gray-100 text-gray-700';
+
+                return `
+                    <div class="fleet-item p-4 hover:bg-gray-50 cursor-pointer transition-colors" 
+                         data-fleet-id="${fleet.fleet_id}"
+                         data-status="${fleet.status}"
+                         onclick='handleFleetClick(${JSON.stringify(fleet).replace(/'/g, "&#39;")})'>
+                        <div class="flex items-start space-x-3">
+                            <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-500 rounded flex items-center justify-center flex-shrink-0">
+                                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M18 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-9H17V12h4.46L19.5 9.5zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM20 8l3 4v5h-2c0 1.66-1.34 3-3 3s-3-1.34-3-3H9c0 1.66-1.34 3-3 3s-3-1.34-3-3H1V6c0-1.11.89-2 2-2h14v4h3zM3 6v9h.76c.55-.61 1.35-1 2.24-1s1.69.39 2.24 1H15V6H3z" />
+                                </svg>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between mb-1">
+                                    <h4 class="font-bold text-gray-800 truncate">${fleet.fleet_id}</h4>
+                                    <span class="px-2 py-0.5 ${statusColor} text-xs rounded-full flex-shrink-0">${fleet.status}</span>
+                                </div>
+                                <p class="text-xs text-gray-500">Weight: ${fleet.weight || 'N/A'} kg</p>
+                                ${fleet.device ? `<p class="text-xs text-gray-400 mt-1">Device: ${fleet.device.device_id}</p>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
+        // Handle fleet click
+        function handleFleetClick(fleet) {
+            currentFleetData = fleet;
+            showFleetDetail(fleet);
+        }
+
+        // Show fleet detail panel
+        function showFleetDetail(fleet) {
+            // Update header
+            document.getElementById('detailFleetId').textContent = fleet.fleet_id;
+            document.getElementById('detailStatus').textContent = fleet.status;
+
+            // Update fleet info
+            document.getElementById('infoFleetId').textContent = fleet.fleet_id;
+            document.getElementById('infoStatus').innerHTML = `<span class="px-2 py-1 rounded text-xs ${getStatusColor(fleet.status)}">${fleet.status}</span>`;
+            document.getElementById('infoWeight').textContent = fleet.weight ? `${fleet.weight} kg` : 'N/A';
+
+            // Update device info
+            if (fleet.device) {
+                document.getElementById('deviceConnection').textContent = fleet.device.connection_status || '-';
+                document.getElementById('deviceSignal').textContent = fleet.device.signal_strength || '-';
+                document.getElementById('deviceSpeed').textContent = fleet.device.speed ? `${fleet.device.speed} km/h` : '0 km/h';
+                document.getElementById('deviceLastUpdate').textContent = formatDateTime(fleet.device.last_update);
+                document.getElementById('deviceAddress').textContent = fleet.device.address || 'No address available';
+                document.getElementById('deviceCoordinates').textContent = fleet.device.latitude && fleet.device.longitude 
+                    ? `${fleet.device.latitude}, ${fleet.device.longitude}` 
+                    : 'No coordinates';
+            } else {
+                document.getElementById('deviceConnection').textContent = 'No Device';
+                document.getElementById('deviceSignal').textContent = '-';
+                document.getElementById('deviceSpeed').textContent = '-';
+                document.getElementById('deviceLastUpdate').textContent = '-';
+                document.getElementById('deviceAddress').textContent = 'No device attached';
+                document.getElementById('deviceCoordinates').textContent = '-';
+            }
+
+            // Show/hide driver info and task info based on status
+            if (fleet.status === 'Assigned' || fleet.status === 'En Route' || fleet.status === 'Completed') {
+                loadTaskInfo(fleet.id);
+            } else {
+                document.getElementById('driverInfo').classList.add('hidden');
+                document.getElementById('taskInfo').classList.add('hidden');
+            }
+
+            // Show panel
+            document.getElementById('fleetDetail').classList.remove('translate-x-full');
+            document.getElementById('detailOverlay').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Load task information
+        function loadTaskInfo(fleetId) {
+            fetch(`/api/fleets/${fleetId}/task`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.task) {
+                        const task = data.task;
+                        
+                        // Show driver info
+                        document.getElementById('driverInfo').classList.remove('hidden');
+                        document.getElementById('detailDriverName').textContent = task.driver?.name || '-';
+                        document.getElementById('detailDriverId').textContent = task.driver?.driver_id || '-';
+
+                        // Show task info
+                        document.getElementById('taskInfo').classList.remove('hidden');
+                        document.getElementById('taskNumber').textContent = task.task_number || '-';
+                        document.getElementById('taskOrigin').textContent = task.origin || '-';
+                        document.getElementById('taskDestination').textContent = task.destination || '-';
+                        document.getElementById('taskCargoType').textContent = task.cargo_type || '-';
+                    }
+                })
+                .catch(error => console.error('Error loading task:', error));
+        }
+
+        // Load device history
+        function loadDeviceHistory() {
+            if (!currentFleetData || !currentFleetData.device) {
+                document.getElementById('historyTableBody').innerHTML = `
+                    <tr><td colspan="3" class="px-3 py-4 text-center text-gray-500">No device attached</td></tr>
+                `;
+                return;
+            }
+
+            fetch(`/manager/device/${currentFleetData.device.id}/histories`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.histories.length > 0) {
+                        renderHistory(data.histories);
+                    } else {
+                        document.getElementById('historyTableBody').innerHTML = `
+                            <tr><td colspan="3" class="px-3 py-4 text-center text-gray-500">No history available</td></tr>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading history:', error);
+                    document.getElementById('historyTableBody').innerHTML = `
+                        <tr><td colspan="3" class="px-3 py-4 text-center text-red-500">Failed to load history</td></tr>
+                    `;
+                });
+        }
+
+        // Render history table
+        function renderHistory(histories) {
+            const tbody = document.getElementById('historyTableBody');
+            tbody.innerHTML = histories.map(history => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-3 py-2 text-gray-700">${formatDateTime(history.event_timestamp)}</td>
+                    <td class="px-3 py-2 text-gray-700">${history.event_type}</td>
+                    <td class="px-3 py-2">
+                        <span class="px-2 py-0.5 rounded text-xs ${getStatusColor(history.status)}">${history.status}</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Close fleet detail
         function closeFleetDetail() {
-            const detailPanel = document.getElementById('fleetDetail');
-            const detailOverlay = document.getElementById('detailOverlay');
-
-            // Hide panel with slide animation
-            detailPanel.classList.add('translate-x-full');
-            detailOverlay.classList.add('hidden');
-
-            // Restore body scroll
+            document.getElementById('fleetDetail').classList.add('translate-x-full');
+            document.getElementById('detailOverlay').classList.add('hidden');
             document.body.style.overflow = 'auto';
+            currentFleetData = null;
         }
 
-        // UPDATED: Vehicle item click handler with tab creation
-        function handleVehicleClick(plateNumber, cargo, driverName, latitude = null, longitude = null) {
-            // Create or switch to tab
-            createVehicleTab(plateNumber, cargo, driverName, latitude, longitude);
-
-            // Show fleet detail
-            showFleetDetail(plateNumber, cargo, driverName, latitude, longitude);
-        }
-
-        // Tab switching function
+        // Switch tab
         function switchTab(tabName) {
             const overviewTab = document.getElementById('tabOverview');
-            const playbackTab = document.getElementById('tabPlayback');
+            const historyTab = document.getElementById('tabHistory');
             const overviewContent = document.getElementById('overviewContent');
-            const playbackContent = document.getElementById('playbackContent');
+            const historyContent = document.getElementById('historyContent');
 
             if (tabName === 'overview') {
                 overviewTab.classList.add('text-white', 'bg-blue-500', 'border-blue-500');
                 overviewTab.classList.remove('text-gray-600');
-
-                playbackTab.classList.remove('text-white', 'bg-blue-500', 'border-blue-500');
-                playbackTab.classList.add('text-gray-600');
-
+                historyTab.classList.remove('text-white', 'bg-blue-500', 'border-blue-500');
+                historyTab.classList.add('text-gray-600');
                 overviewContent.classList.remove('hidden');
-                playbackContent.classList.add('hidden');
-            } else if (tabName === 'playback') {
-                playbackTab.classList.add('text-white', 'bg-blue-500', 'border-blue-500');
-                playbackTab.classList.remove('text-gray-600');
-
+                historyContent.classList.add('hidden');
+            } else if (tabName === 'history') {
+                historyTab.classList.add('text-white', 'bg-blue-500', 'border-blue-500');
+                historyTab.classList.remove('text-gray-600');
                 overviewTab.classList.remove('text-white', 'bg-blue-500', 'border-blue-500');
                 overviewTab.classList.add('text-gray-600');
-
-                playbackContent.classList.remove('hidden');
+                historyContent.classList.remove('hidden');
                 overviewContent.classList.add('hidden');
+                loadDeviceHistory();
             }
         }
 
-        // Close detail panel with Escape key
+        // Utility functions
+        function getStatusColor(status) {
+            const colors = {
+                'Unassigned': 'bg-gray-100 text-gray-700',
+                'Assigned': 'bg-blue-100 text-blue-700',
+                'En Route': 'bg-green-100 text-green-700',
+                'Completed': 'bg-purple-100 text-purple-700',
+                'Connected': 'bg-green-100 text-green-700',
+                'Disconnected': 'bg-red-100 text-red-700',
+                'Idle': 'bg-yellow-100 text-yellow-700',
+                'Active': 'bg-green-100 text-green-700',
+                'Stopped': 'bg-gray-100 text-gray-700'
+            };
+            return colors[status] || 'bg-gray-100 text-gray-700';
+        }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleString('id-ID', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Close with Escape key
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
                 const detailPanel = document.getElementById('fleetDetail');
