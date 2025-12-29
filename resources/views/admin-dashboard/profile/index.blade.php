@@ -16,8 +16,6 @@
         <header class="px-4 py-2">
             <!-- Header Top with Tabs -->
             @include('components.headerTop.headerTab')
-            <!-- Status Badges -->
-            @include('components.headerTop.badgeStatus')
 
             <!-- Breadcrumb -->
             <div class="m-6">
