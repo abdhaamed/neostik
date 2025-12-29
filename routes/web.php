@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 | AUTHENTICATION ROUTES
 |--------------------------------------------------------------------------
 */
+
 Route::get('/login', [LoginController::class, 'choice'])->name('login');
 
 Route::get('/login/admin', [LoginController::class, 'adminForm'])->name('login.admin');
@@ -148,6 +149,10 @@ Route::middleware(['auth', App\Http\Middleware\AdminMiddleware::class])->group(f
 Route::prefix('driver')->middleware('auth')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\DriverController::class, 'dashboard'])
         ->name('driver.dashboard');
+
+    Route::get('/dashboard/data', [App\Http\Controllers\DriverController::class, 'dashboardData'])
+        ->name('driver.dashboard.data');
+
     Route::get('/shipments', [App\Http\Controllers\DriverController::class, 'shipments'])
         ->name('driver.shipments');
 

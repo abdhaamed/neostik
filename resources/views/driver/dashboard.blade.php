@@ -3,167 +3,230 @@
 @section('title', 'Dashboard')
 
 @section('content')
-<!-- Welcome Section -->
-<div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6 mb-6 text-white">
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold mb-2">Welcome back, {{ $driver->name }}!</h1>
-            <p class="text-blue-100">Here's your activity summary for today</p>
-        </div>
-        <div class="flex items-center space-x-4">
-            <!-- Driver Status Badge -->
-            <div class="bg-white bg-opacity-20 rounded-lg px-4 py-2">
-                <span class="text-sm font-medium">Status: </span>
-                <span class="font-bold">{{ ucfirst(str_replace('_', ' ', $driver->availability)) }}</span>
-            </div>
-            <!-- Rating -->
-            <div class="bg-white bg-opacity-20 rounded-lg px-4 py-2">
-                <span class="text-sm font-medium">Rating: </span>
-                <span class="font-bold">⭐ {{ number_format($driver->rating, 1) }}</span>
-            </div>
-        </div>
-    </div>
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">Welcome back, {{ $driver->name }}!</h1>
+    <p class="text-gray-600">Here's what's happening with your shipments today</p>
 </div>
 
-<!-- Stats Cards -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
     <!-- Active Shipments -->
-    <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-        <div class="flex items-center">
-            <div class="flex-shrink-0 bg-blue-500 rounded-lg p-4">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Active Shipments</p>
+                <h3 class="text-3xl font-bold text-blue-600" id="activeShipmentsCount">{{ $stats['active_shipments'] }}</h3>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                 </svg>
-            </div>
-            <div class="ml-5 w-0 flex-1">
-                <dl>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Active Shipments</dt>
-                    <dd class="text-3xl font-bold text-gray-900">{{ $stats['active_shipments'] }}</dd>
-                </dl>
             </div>
         </div>
     </div>
 
     <!-- Completed Today -->
-    <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-        <div class="flex items-center">
-            <div class="flex-shrink-0 bg-green-500 rounded-lg p-4">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Completed Today</p>
+                <h3 class="text-3xl font-bold text-green-600" id="completedTodayCount">{{ $stats['completed_today'] }}</h3>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-            </div>
-            <div class="ml-5 w-0 flex-1">
-                <dl>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Completed Today</dt>
-                    <dd class="text-3xl font-bold text-gray-900">{{ $stats['completed_today'] }}</dd>
-                </dl>
             </div>
         </div>
     </div>
 
     <!-- Pending Pickups -->
-    <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
-        <div class="flex items-center">
-            <div class="flex-shrink-0 bg-yellow-500 rounded-lg p-4">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="bg-white rounded-lg shadow-lg p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-gray-500 mb-1">Pending Pickups</p>
+                <h3 class="text-3xl font-bold text-orange-600" id="pendingPickupsCount">{{ $stats['pending_pickups'] }}</h3>
+            </div>
+            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
-            <div class="ml-5 w-0 flex-1">
-                <dl>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Pending Pickups</dt>
-                    <dd class="text-3xl font-bold text-gray-900">{{ $stats['pending_pickups'] }}</dd>
-                </dl>
-            </div>
         </div>
     </div>
 </div>
 
-<!-- Main Content Grid -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Active Shipments (Left - 2 columns) -->
-    <div class="lg:col-span-2">
-        <div class="bg-white rounded-lg shadow-lg">
-            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-gray-800">Active Shipments</h2>
-                <a href="{{ route('driver.shipments') }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                    View All →
-                </a>
-            </div>
-            <div class="p-6">
+<!-- Driver Profile Summary -->
+<div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-4">Driver Information</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+            <p class="text-sm text-gray-500">Driver ID</p>
+            <p class="font-medium text-gray-800">{{ $driver->driver_id }}</p>
+        </div>
+        <div>
+            <p class="text-sm text-gray-500">Status</p>
+            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full 
+                @if($driver->status === 'active') bg-green-100 text-green-800
+                @elseif($driver->status === 'inactive') bg-gray-100 text-gray-800
+                @else bg-red-100 text-red-800
+                @endif">
+                {{ ucfirst($driver->status) }}
+            </span>
+        </div>
+        <div>
+            <p class="text-sm text-gray-500">Availability</p>
+            <span class="inline-flex px-2 py-1 text-xs font-medium rounded-full
+                @if($driver->availability === 'available') bg-green-100 text-green-800
+                @elseif($driver->availability === 'on_duty') bg-blue-100 text-blue-800
+                @else bg-gray-100 text-gray-800
+                @endif">
+                {{ ucfirst(str_replace('_', ' ', $driver->availability)) }}
+            </span>
+        </div>
+        <div>
+            <p class="text-sm text-gray-500">Completed Deliveries</p>
+            <p class="font-medium text-gray-800">{{ $driver->completed_deliveries ?? 0 }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Tasks -->
+<div class="bg-white rounded-lg shadow-lg p-6">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-gray-800">Recent Tasks</h2>
+        <a href="{{ route('driver.shipments') }}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+            View All →
+        </a>
+    </div>
+
+    <div id="recentTasksContainer">
+        <div class="text-center py-8">
+            <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <p class="text-gray-500">Loading tasks...</p>
+        </div>
+    </div>
+</div>
+
+@endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboardData();
+        
+        // Refresh data every 30 seconds
+        setInterval(loadDashboardData, 30000);
+    });
+
+    function loadDashboardData() {
+        fetch('/driver/dashboard/data', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateStats(data.stats);
+                updateRecentTasks(data.recentTasks);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading dashboard data:', error);
+        });
+    }
+
+    function updateStats(stats) {
+        document.getElementById('activeShipmentsCount').textContent = stats.active_shipments || 0;
+        document.getElementById('completedTodayCount').textContent = stats.completed_today || 0;
+        document.getElementById('pendingPickupsCount').textContent = stats.pending_pickups || 0;
+    }
+
+    function updateRecentTasks(tasks) {
+        const container = document.getElementById('recentTasksContainer');
+        
+        if (!tasks || tasks.length === 0) {
+            container.innerHTML = `
                 <div class="text-center py-12">
-                    <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-16 h-16 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                     </svg>
-                    <p class="text-gray-500 text-lg">No active shipments</p>
-                    <p class="text-gray-400 text-sm mt-2">Your assigned shipments will appear here</p>
+                    <p class="text-gray-500 text-sm">No tasks assigned yet</p>
                 </div>
-            </div>
-        </div>
-    </div>
+            `;
+            return;
+        }
 
-    <!-- Driver Info Card (Right - 1 column) -->
-    <div class="lg:col-span-1">
-        <!-- Profile Card -->
-        <div class="bg-white rounded-lg shadow-lg mb-6">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <h2 class="text-lg font-semibold text-gray-800">Driver Profile</h2>
-            </div>
-            <div class="p-6">
-                <!-- Avatar -->
-                <div class="flex flex-col items-center mb-6">
-                    <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-3xl font-bold mb-3">
-                        {{ $driver->initials }}
+        container.innerHTML = tasks.map(task => {
+            const statusColors = {
+                'assigned': 'bg-orange-100 text-orange-800',
+                'en_route': 'bg-blue-100 text-blue-800',
+                'completed': 'bg-green-100 text-green-800',
+                'cancelled': 'bg-red-100 text-red-800'
+            };
+            const statusColor = statusColors[task.status] || 'bg-gray-100 text-gray-800';
+            
+            return `
+                <div class="border border-gray-200 rounded-lg p-4 mb-3 hover:shadow-md transition-shadow">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <h3 class="font-semibold text-gray-800">Task #${task.task_number}</h3>
+                            <p class="text-xs text-gray-500 mt-1">
+                                ${task.fleet ? 'Fleet: ' + task.fleet.fleet_id : 'No fleet assigned'}
+                            </p>
+                        </div>
+                        <span class="px-2 py-1 rounded-full text-xs font-medium ${statusColor}">
+                            ${task.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </span>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-800">{{ $driver->name }}</h3>
-                    <p class="text-gray-500 text-sm">{{ $driver->driver_id }}</p>
-                </div>
-
-                <!-- Stats -->
-                <div class="space-y-4 mb-6">
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Total Deliveries</span>
-                        <span class="font-bold text-gray-900">{{ $driver->completed_deliveries }}</span>
+                    
+                    <div class="grid grid-cols-2 gap-3 text-sm mb-3">
+                        <div>
+                            <p class="text-gray-500 text-xs">Origin</p>
+                            <p class="text-gray-800 truncate">${task.origin || '—'}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-xs">Destination</p>
+                            <p class="text-gray-800 truncate">${task.destination || '—'}</p>
+                        </div>
                     </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Rating</span>
-                        <span class="font-bold text-gray-900">{{ number_format($driver->rating, 1) }}/5.0</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">Completion Rate</span>
-                        <span class="font-bold text-green-600">{{ $driver->completion_rate }}%</span>
-                    </div>
-                </div>
-
-                <!-- Edit Profile Button -->
-                <a href="{{ route('driver.profile') }}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-3 rounded-lg font-medium transition-colors">
-                    Edit Profile
-                </a>
-            </div>
-        </div>
-
-        <!-- Vehicle Info Card -->
-        <div class="bg-white rounded-lg shadow-lg">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <h2 class="text-lg font-semibold text-gray-800">Vehicle Information</h2>
-            </div>
-            <div class="p-6">
-                <div class="space-y-3">
-                    <div>
-                        <span class="text-gray-500 text-sm">Type</span>
-                        <p class="font-semibold text-gray-900">{{ $driver->vehicle_type ?? 'Not set' }}</p>
-                    </div>
-                    <div>
-                        <span class="text-gray-500 text-sm">Plate Number</span>
-                        <p class="font-semibold text-gray-900">{{ $driver->vehicle_plate ?? 'Not set' }}</p>
-                    </div>
-                    <div>
-                        <span class="text-gray-500 text-sm">License</span>
-                        <p class="font-semibold text-gray-900">{{ $driver->license_number ?? 'Not set' }}</p>
+                    
+                    ${task.cargo_type ? `
+                        <p class="text-xs text-gray-600 mb-3">
+                            <span class="font-medium">Cargo:</span> ${task.cargo_type}
+                            ${task.cargo_volume ? ' • ' + task.cargo_volume : ''}
+                        </p>
+                    ` : ''}
+                    
+                    <div class="flex items-center justify-between pt-3 border-t border-gray-200">
+                        <p class="text-xs text-gray-500">${formatDate(task.created_at)}</p>
+                        <a href="/driver/tasks/${task.id}" class="text-xs text-blue-600 hover:text-blue-700 font-medium">
+                            View Details →
+                        </a>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
+            `;
+        }).join('');
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = Math.floor((now - date) / 1000); // seconds
+        
+        if (diff < 60) return 'Just now';
+        if (diff < 3600) return Math.floor(diff / 60) + ' minutes ago';
+        if (diff < 86400) return Math.floor(diff / 3600) + ' hours ago';
+        
+        return date.toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric',
+            year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+        });
+    }
+</script>
+@endpush

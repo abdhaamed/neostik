@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Task; 
+use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -16,6 +16,7 @@ class DriverController extends Controller
         /** @var User $driver */
         $driver = Auth::user();
 
+        // JANGAN DIUBAH (SESUSAI PERMINTAAN)
         $stats = [
             'active_shipments' => 0,
             'completed_today' => 0,
@@ -25,11 +26,46 @@ class DriverController extends Controller
         return view('driver.dashboard', compact('driver', 'stats'));
     }
 
+    /**
+     * DATA REALTIME DASHBOARD (METHOD BARU, TIDAK MENGUBAH DASHBOARD)
+     */
+    public function dashboardData()
+    {
+        /** @var User $driver */
+        $driver = Auth::user();
+
+        $stats = [
+            'active_shipments' => Task::where('driver_id', $driver->id)
+                ->whereIn('status', ['assigned', 'en_route'])
+                ->count(),
+
+            'completed_today' => Task::where('driver_id', $driver->id)
+                ->where('status', 'completed')
+                ->whereDate('updated_at', today())
+                ->count(),
+
+            'pending_pickups' => Task::where('driver_id', $driver->id)
+                ->where('status', 'assigned')
+                ->count(),
+        ];
+
+        $recentTasks = Task::with('fleet.device')
+            ->where('driver_id', $driver->id)
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'stats' => $stats,
+            'recentTasks' => $recentTasks,
+        ]);
+    }
+
     public function shipments()
     {
         $driver = Auth::user();
 
-        // Gunakan Task tanpa namespace penuh
         $tasks = Task::with('fleet.device')
             ->where('driver_id', $driver->id)
             ->orderBy('created_at', 'desc')
